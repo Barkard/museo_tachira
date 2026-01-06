@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\PieceController; 
 use App\Http\Controllers\CurrentLocationController; 
 use App\Http\Controllers\LocationCategoryController;
+use App\Http\Controllers\DashboardController;
 
 
 Route::get('/', function () {
@@ -30,9 +31,7 @@ Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 
     Route::resource('piezas', PieceController::class);

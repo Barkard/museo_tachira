@@ -17,6 +17,11 @@ class Movement extends Model
         'user_id',
         'entry_exit_date',
     ];
+    
+    public function piece()
+    {
+        return $this->hasOne(Piece::class, 'movement_id');
+    }
 
     public function movementCatalog()
     {

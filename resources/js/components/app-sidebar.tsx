@@ -1,13 +1,31 @@
 import { Link, usePage } from '@inertiajs/react';
 import { 
-    LayoutDashboard, Package, MapPin, ChevronDown, ChevronRight, Settings, LogOut 
+    LayoutDashboard, Package, MapPin, ChevronDown, Tags, ChevronRight, Settings, LogOut 
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+
+interface SubItem {
+    name: string;
+    href: string;
+}
+
+interface NavItemProps {
+    name: string;
+    href?: string;
+    icon: any; 
+    current: boolean;
+    subItems?: SubItem[];
+}
+
+interface NavGroup {
+    group: string;
+    items: NavItemProps[];
+}
 
 export default function AppSidebar() {
     const { url } = usePage();
 
-    const navigation = [
+    const navigation: NavGroup[] = [
         {
             group: 'Principal',
             items: [
@@ -33,6 +51,15 @@ export default function AppSidebar() {
                     subItems: [
                         { name: 'Ver Lista', href: route('ubicaciones.index') },
                         { name: 'Crear Zona', href: route('ubicaciones.create') },
+                    ]
+                },
+                {
+                    name: 'Clasificaciones',
+                    icon: Tags,
+                    current: url.startsWith('/clasificaciones'),
+                    subItems: [
+                        { name: 'Categorías', href: route('clasificaciones.index') },
+                        { name: 'Nueva Categoría', href: route('clasificaciones.create') },
                     ]
                 }
             ]
@@ -86,7 +113,7 @@ export default function AppSidebar() {
     );
 }
 
-function NavItem({ item }: { item: any }) {
+function NavItem({ item }: { item: NavItemProps }) {
     const [isOpen, setIsOpen] = useState(item.current);
 
     useEffect(() => { if (item.current) setIsOpen(true); }, [item.current]);
@@ -109,7 +136,7 @@ function NavItem({ item }: { item: any }) {
                 </button>
                 {isOpen && (
                     <div className="mt-1 ml-4 pl-3 border-l border-slate-700/50 space-y-0.5">
-                        {item.subItems.map((sub: any) => (
+                        {item.subItems?.map((sub) => (
                             <Link key={sub.name} href={sub.href} className={`block px-3 py-1.5 text-xs rounded-md transition-colors ${window.location.href === sub.href ? "text-blue-400 bg-blue-500/10 font-semibold" : "text-slate-500 hover:text-slate-300 hover:bg-white/5"}`}>
                                 {sub.name}
                             </Link>
@@ -120,7 +147,7 @@ function NavItem({ item }: { item: any }) {
         );
     }
     return (
-        <Link href={item.href} className={`${baseClasses} ${item.current ? "bg-blue-600 text-white shadow-md shadow-blue-900/20" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
+        <Link href={item.href || '#'} className={`${baseClasses} ${item.current ? "bg-blue-600 text-white shadow-md shadow-blue-900/20" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}`}>
             <item.icon className={`w-4 h-4 mr-2 ${item.current ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`} />
             {item.name}
         </Link>

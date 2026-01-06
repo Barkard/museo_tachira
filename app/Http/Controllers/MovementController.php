@@ -18,17 +18,18 @@ class MovementController extends Controller
     public function index(Request $request)
     {
         $query = Movement::query()
-            ->with(['movementCatalog', 'agent', 'transactionStatus', 'user']);
+            ->with(['movementCatalog', 'agent', 'transactionStatus', 'user', 'piece']);
 
         if ($request->has('search')) {
             $search = $request->search;
-            // Search by related fields or ID
             $query->whereHas('agent', function ($q) use ($search) {
                 $q->where('name_legal_entity', 'like', "%{$search}%");
+            })->orWhereHas('piece', function ($q) use ($search) {
+                $q->where('piece_name', 'like', "%{$search}%");
             });
         }
 
-        $movements = $query->paginate(10)->withQueryString();
+        $movements = $query->latest()->paginate(10)->withQueryString();
 
         return Inertia::render('Movements/Index', [
             'movements' => $movements,
