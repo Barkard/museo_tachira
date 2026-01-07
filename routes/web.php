@@ -14,11 +14,13 @@ use App\Http\Controllers\LocationCategoryController;
 use App\Http\Controllers\DashboardController;
 
 
-Route::get('/', function () {
-    return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
-})->name('home');
+//Route::get('/', function () {
+  //  return Inertia::render('welcome', [
+     //   'canRegister' => Features::enabled(Features::registration()),
+   // ]);
+//})->name('home');
+
+Route::redirect('/', '/login');
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [LoginController::class, 'create'])->name('login');
