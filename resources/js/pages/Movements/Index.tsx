@@ -1,9 +1,8 @@
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout'; 
 import { Head, Link, router } from '@inertiajs/react';
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { debounce } from 'lodash';
 import { Pencil, Trash2, Plus, Search, ArrowRightLeft } from 'lucide-react';
-
 
 interface Movement {
     id: number;
@@ -102,7 +101,7 @@ export default function Index({ movements, filters }: Props) {
                                 {movements.data.length > 0 ? (
                                     movements.data.map((movement) => (
                                         <tr key={movement.id} className="hover:bg-gray-50 transition-colors">
-                                            {/* COLUMNA PIEZA (NUEVA) */}
+                                            {/* COLUMNA PIEZA */}
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
                                                     <div className="flex-shrink-0 h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
@@ -159,7 +158,7 @@ export default function Index({ movements, filters }: Props) {
                             </tbody>
                         </table>
                     </div>
-                    {/* Paginación si es necesaria */}
+                    {/* Paginación */}
                     {movements.links && movements.links.length > 3 && (
                         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                             <span className="text-xs text-gray-500">Mostrando {movements.data.length} registros</span>

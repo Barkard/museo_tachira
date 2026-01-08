@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { 
-    LayoutDashboard, Package, MapPin, ChevronDown, Tags, ChevronRight, Settings, LogOut 
+    LayoutDashboard, ArrowRightLeft, Package, MapPin, ChevronDown, Tags, ChevronRight, Settings, Users, LogOut 
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -25,11 +25,25 @@ interface NavGroup {
 export default function AppSidebar() {
     const { url } = usePage();
 
-    const navigation: NavGroup[] = [
+        const navigation: NavGroup[] = [
         {
             group: 'Principal',
             items: [
-                { name: 'Dashboard', href: route('dashboard'), icon: LayoutDashboard, current: url.startsWith('/dashboard') },
+                { 
+                    name: 'Dashboard', 
+                    href: route('dashboard'), 
+                    icon: LayoutDashboard, 
+                    current: url.startsWith('/dashboard') 
+                },
+                {
+                    name: 'Movimientos',
+                    icon: ArrowRightLeft,
+                    current: url.startsWith('/movimientos'),
+                    subItems: [
+                        { name: 'Registrar Nuevo', href: route('movimientos.create') },
+                        { name: 'Historial', href: route('movimientos.index') },
+                    ]
+                },
             ]
         },
         {
@@ -60,6 +74,21 @@ export default function AppSidebar() {
                     subItems: [
                         { name: 'Categorías', href: route('clasificaciones.index') },
                         { name: 'Nueva Categoría', href: route('clasificaciones.create') },
+                    ]
+                }
+            ]
+        },
+
+        {
+            group: 'Gestión de Colección',
+            items: [
+                {
+                    name: 'Agentes / Entidades',
+                    icon: Users,
+                    current: url.startsWith('/agentes'),
+                    subItems: [
+                        { name: 'Directorio', href: route('agentes.index') },
+                        { name: 'Nuevo Agente', href: route('agentes.create') },
                     ]
                 }
             ]

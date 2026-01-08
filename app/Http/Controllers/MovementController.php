@@ -6,6 +6,7 @@ use App\Models\Movement;
 use App\Models\MovementCatalog;
 use App\Models\Agent;
 use App\Models\TransactionStatusCatalog;
+use App\Models\Piece; 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -43,7 +44,10 @@ class MovementController extends Controller
     public function create()
     {
         return Inertia::render('Movements/Create', [
-            'movementTypes' => MovementCatalog::all(),
+            'pieces' => Piece::select('id', 'piece_name', 'registration_number')->get(), 
+            
+            'types' => MovementCatalog::all(), 
+            
             'agents' => Agent::all(),
             'statuses' => TransactionStatusCatalog::all(),
         ]);
@@ -55,6 +59,7 @@ class MovementController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'piece_id' => 'required|exists:pieces,id', 
             'movement_type_id' => 'required|exists:movement_catalogs,id',
             'agent_id' => 'required|exists:agents,id',
             'transaction_status_id' => 'required|exists:transaction_status_catalogs,id',
@@ -75,7 +80,8 @@ class MovementController extends Controller
     {
         return Inertia::render('Movements/Edit', [
             'movement' => $movimiento,
-            'movementTypes' => MovementCatalog::all(),
+            'pieces' => Piece::select('id', 'piece_name', 'registration_number')->get(),
+            'types' => MovementCatalog::all(),
             'agents' => Agent::all(),
             'statuses' => TransactionStatusCatalog::all(),
         ]);
@@ -87,6 +93,7 @@ class MovementController extends Controller
     public function update(Request $request, Movement $movimiento)
     {
         $validated = $request->validate([
+            'piece_id' => 'required|exists:pieces,id', 
             'movement_type_id' => 'required|exists:movement_catalogs,id',
             'agent_id' => 'required|exists:agents,id',
             'transaction_status_id' => 'required|exists:transaction_status_catalogs,id',

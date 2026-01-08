@@ -7,10 +7,12 @@ use App\Models\MovementCatalog;
 use App\Models\Agent;
 use App\Models\TransactionStatusCatalog;
 use App\Models\User;
+use App\Models\Piece; 
 
 class Movement extends Model
 {
     protected $fillable = [
+        'piece_id',
         'movement_type_id',
         'agent_id',
         'transaction_status_id',
@@ -18,9 +20,10 @@ class Movement extends Model
         'entry_exit_date',
     ];
     
+
     public function piece()
     {
-        return $this->hasOne(Piece::class, 'movement_id');
+        return $this->belongsTo(Piece::class, 'piece_id');
     }
 
     public function movementCatalog()

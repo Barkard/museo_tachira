@@ -12,6 +12,7 @@ use App\Http\Controllers\PieceController;
 use App\Http\Controllers\CurrentLocationController; 
 use App\Http\Controllers\LocationCategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AgentController;
 
 
 //Route::get('/', function () {
@@ -39,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('piezas', PieceController::class);
     Route::resource('agentes', \App\Http\Controllers\AgentController::class);
     Route::resource('movimientos', \App\Http\Controllers\MovementController::class);
+    Route::resource('agentes', AgentController::class);
     
 
     Route::resource('clasificaciones', \App\Http\Controllers\ClassificationCategoryController::class);
