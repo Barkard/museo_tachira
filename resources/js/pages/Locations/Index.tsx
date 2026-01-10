@@ -1,10 +1,28 @@
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, ChangeEvent } from 'react';
 import { Pencil, Trash2, Plus, Search, MapPin } from 'lucide-react';
 import { debounce } from 'lodash';
 
-export default function Index({ locations, filters }: any) {
+interface Location {
+    id: number;
+    name: string;
+    description: string | null;
+}
+
+interface PaginatedLocations {
+    data: Location[];
+    links: string[];
+}
+
+interface IndexProps {
+    locations: PaginatedLocations;
+    filters: {
+        search?: string;
+    };
+}
+
+export default function Index({ locations, filters }: IndexProps) {
     const [search, setSearch] = useState(filters.search || '');
 
     const handleSearch = debounce((value) => {
@@ -15,7 +33,7 @@ export default function Index({ locations, filters }: any) {
         );
     }, 300);
 
-    const onSearchChange = (e: any) => {
+    const onSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
         handleSearch(e.target.value);
     };
@@ -36,7 +54,7 @@ export default function Index({ locations, filters }: any) {
             <Head title="Ubicaciones" />
 
             <div className="space-y-6">
-                
+
                 {/* BARRA DE HERRAMIENTAS */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="relative w-full sm:w-72">
@@ -51,9 +69,9 @@ export default function Index({ locations, filters }: any) {
                             onChange={onSearchChange}
                         />
                     </div>
-                    
-                    <Link 
-                        href={route('ubicaciones.create')} 
+
+                    <Link
+                        href={route('ubicaciones.create')}
                         className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
                     >
                         <Plus className="h-4 w-4 mr-2" />
@@ -82,7 +100,7 @@ export default function Index({ locations, filters }: any) {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {locations.data.map((loc: any) => (
+                                    {locations.data.map((loc: Location) => (
                                         <tr key={loc.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
@@ -113,7 +131,7 @@ export default function Index({ locations, filters }: any) {
                             </table>
                         </div>
                     )}
-                    
+
                     {/* Paginación simple si es necesaria */}
                     {locations.links && locations.links.length > 3 && (
                         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
