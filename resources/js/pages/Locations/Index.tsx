@@ -19,7 +19,7 @@ interface Location {
 interface Props {
     locations: {
         data: Location[];
-        links: any[];
+        links: string[];
     };
     filters: {
         search?: string;
@@ -99,6 +99,7 @@ export default function Index({ locations, filters }: Props) {
                         </tbody>
                     </table>
                 </div>
+            </div>
             </div>
         </AppLayout>
     );
