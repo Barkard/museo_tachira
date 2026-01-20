@@ -7,6 +7,7 @@ use Laravel\Fortify\Features;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 
+use App\Http\Controllers\ProfileController;
 
 use App\Http\Controllers\PieceController; 
 use App\Http\Controllers\CurrentLocationController; 
@@ -56,6 +57,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('conservacion', \App\Http\Controllers\ConservationStatusController::class)->parameters(['conservacion' => 'status']);
 });
 
-
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Rutas de perfil
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
 
 require __DIR__.'/settings.php';

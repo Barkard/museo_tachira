@@ -12,8 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement('ALTER TABLE pieces ALTER COLUMN dimensions TYPE json USING dimensions::json');
-        DB::statement("ALTER TABLE pieces ALTER COLUMN dimensions SET DEFAULT '[]'::json");
+        Schema::table('pieces', function (Blueprint $table) {
+            // En lugar de usar DB::statement con SQL crudo de Postgres, usa esto:
+            $table->json('dimensions')->change();
+        });
     }
 
     /**

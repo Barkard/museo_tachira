@@ -25,7 +25,7 @@ interface NavGroup {
 export default function AppSidebar() {
     const { url } = usePage();
 
-        const navigation: NavGroup[] = [
+    const navigation: NavGroup[] = [
         {
             group: 'Principal',
             items: [
@@ -96,7 +96,12 @@ export default function AppSidebar() {
         {
             group: 'Sistema',
             items: [
-                { name: 'Ajustes', href: '#', icon: Settings, current: false },
+                { 
+                    name: 'Ajustes de Perfil', 
+                    href: route('profile.edit'), 
+                    icon: Settings, 
+                    current: url.startsWith('/profile') 
+                },
             ]
         }
     ];
