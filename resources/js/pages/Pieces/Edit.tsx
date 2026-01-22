@@ -27,7 +27,11 @@ interface Piece {
     classification_id: number;
     description?: string;
     author_ethnicity?: string;
-    dimensions?: string;
+    dimensions?: {
+        height?: string;
+        width?: string;
+        thickness?: string;
+    } | null;
     realization_date?: string;
     brief_history?: string;
     reference_value?: number;
@@ -47,7 +51,11 @@ export default function Edit({ piece, classifications }: Props) {
         classification_id: piece.classification_id.toString(),
         description: piece.description || '',
         author_ethnicity: piece.author_ethnicity || '',
-        dimensions: piece.dimensions || '',
+        dimensions: {
+            height: piece.dimensions?.height || '',
+            width: piece.dimensions?.width || '',
+            thickness: piece.dimensions?.thickness || '',
+        },
         realization_date: piece.realization_date || '',
         brief_history: piece.brief_history || '',
         reference_value: piece.reference_value || '',
@@ -145,16 +153,42 @@ export default function Edit({ piece, classifications }: Props) {
                                 />
                                 {errors.author_ethnicity && <p className="text-red-500 text-sm mt-1">{errors.author_ethnicity}</p>}
                             </div>
-                             <div>
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Dimensiones
+                                    Dimensiones (cm)
                                 </label>
-                                <input
-                                    type="text"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={data.dimensions}
-                                    onChange={(e) => setData('dimensions', e.target.value)}
-                                />
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="Alto"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={data.dimensions.height}
+                                            onChange={(e) => setData('dimensions', { ...data.dimensions, height: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="Ancho"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={data.dimensions.width}
+                                            onChange={(e) => setData('dimensions', { ...data.dimensions, width: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="Grosor"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={data.dimensions.thickness}
+                                            onChange={(e) => setData('dimensions', { ...data.dimensions, thickness: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
                                 {errors.dimensions && <p className="text-red-500 text-sm mt-1">{errors.dimensions}</p>}
                             </div>
                         </div>

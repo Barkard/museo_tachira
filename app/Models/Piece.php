@@ -21,6 +21,11 @@ class Piece extends Model
         'photograph_reference',
     ];
 
+    protected $casts = [
+        'dimensions' => 'array',
+        'is_research_piece' => 'boolean',
+    ];
+
     public function classification()
     {
         return $this->belongsTo(ClassificationCategory::class, 'classification_id');

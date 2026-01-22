@@ -1,137 +1,91 @@
-
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { Head, Link, router } from '@inertiajs/react';
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
+import { Pencil, Trash2, Plus, Search, Building2, User, Phone, Mail } from 'lucide-react';
 import { debounce } from 'lodash';
-import { Pencil, Trash2, Plus, Search } from 'lucide-react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Agentes',
-        href: '/agentes',
-    },
-];
-
-interface Agent {
-    id: number;
-    name_legal_entity: string;
-    agent_type: string;
-    created_at: string;
-}
-
-interface Props {
-    agents: {
-        data: Agent[];
-        links: any[];
-    };
-    filters: {
-        search?: string;
-    };
-}
-
-export default function Index({ agents, filters }: Props) {
+export default function Index({ agents, filters }: any) {
     const [search, setSearch] = useState(filters.search || '');
 
-    const handleSearch = useCallback(
-        debounce((query: string) => {
-            router.get(
-                route('agentes.index'),
-                { search: query },
-                { preserveState: true, replace: true }
-            );
-        }, 300),
-        []
-    );
-
-    const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearch(e.target.value);
-        handleSearch(e.target.value);
-    };
-
-    const handleDelete = (id: number) => {
-        if (confirm('¿Estás seguro de querer eliminar este agente?')) {
-            router.delete(route('agentes.destroy', id));
-        }
-    };
+    const handleSearch = debounce((val) => {
+        router.get(route('agentes.index'), { search: val }, { preserveState: true, replace: true });
+    }, 300);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppSidebarLayout breadcrumbs={[{ title: 'Agentes', href: route('agentes.index') }]} header="Directorio de Agentes">
             <Head title="Agentes" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">Catálogo de Agentes</h2>
-                    <Link
-                        href={route('agentes.create')}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Nuevo Agente
+            <div className="space-y-6">
+                {/* BUSCADOR Y BOTÓN */}
+                <div className="flex flex-col sm:flex-row justify-between gap-4">
+                    <div className="relative w-full sm:w-72">
+                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                        <input
+                            type="text"
+                            className="pl-10 w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Buscar institución o persona..."
+                            defaultValue={search}
+                            onChange={(e) => handleSearch(e.target.value)}
+                        />
+                    </div>
+                    <Link href={route('agentes.create')} className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium text-sm">
+                        <Plus className="h-4 w-4 mr-2" /> Nuevo Agente
                     </Link>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center gap-4">
-                        <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <input
-                                type="text"
-                                placeholder="Buscar por nombre..."
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                value={search}
-                                onChange={onSearchChange}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-                                <tr>
-                                    <th className="px-6 py-3 font-semibold">Nombre / Entidad Legal</th>
-                                    <th className="px-6 py-3 font-semibold">Tipo de Agente</th>
-                                    <th className="px-6 py-3 font-semibold text-right">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {agents.data.length > 0 ? (
-                                    agents.data.map((agent) => (
-                                        <tr key={agent.id} className="hover:bg-gray-50 transition">
-                                            <td className="px-6 py-4 font-medium text-gray-900">
-                                                {agent.name_legal_entity}
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-700">
-                                                {agent.agent_type}
-                                            </td>
-                                            <td className="px-6 py-4 text-right flex justify-end gap-2">
-                                                <Link
-                                                    href={route('agentes.edit', agent.id)}
-                                                    className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50"
-                                                >
-                                                    <Pencil className="w-4 h-4" />
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleDelete(agent.id)}
-                                                    className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
-                                            No se encontraron agentes.
-                                        </td>
-                                    </tr>
+                {/* TARJETAS / LISTA */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {agents.data.map((agent: any) => (
+                        <div key={agent.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 hover:border-blue-300 transition-all group">
+                            <div className="flex justify-between items-start mb-3">
+                                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                    <Building2 className="w-6 h-6" />
+                                </div>
+                                <div className="flex gap-1">
+                                    <Link href={route('agentes.edit', agent.id)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-md">
+                                        <Pencil className="w-4 h-4" />
+                                    </Link>
+                                    <button 
+                                        onClick={() => confirm('¿Eliminar agente?') && router.delete(route('agentes.destroy', agent.id))}
+                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-gray-100 rounded-md"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <h3 className="font-bold text-gray-900 text-lg mb-1 line-clamp-1">{agent.name_legal_entity}</h3>
+                            
+                            <div className="space-y-2 mt-4 text-sm text-gray-600">
+                                {agent.representative_name && (
+                                    <div className="flex items-center gap-2">
+                                        <User className="w-3.5 h-3.5 text-gray-400" />
+                                        <span>{agent.representative_name}</span>
+                                    </div>
                                 )}
-                            </tbody>
-                        </table>
-                    </div>
+                                {agent.phone && (
+                                    <div className="flex items-center gap-2">
+                                        <Phone className="w-3.5 h-3.5 text-gray-400" />
+                                        <span>{agent.phone}</span>
+                                    </div>
+                                )}
+                                {agent.email && (
+                                    <div className="flex items-center gap-2">
+                                        <Mail className="w-3.5 h-3.5 text-gray-400" />
+                                        <span className="truncate">{agent.email}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
                 </div>
+                
+                {agents.data.length === 0 && (
+                    <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
+                        No se encontraron agentes registrados.
+                    </div>
+                )}
             </div>
-        </AppLayout>
+        </AppSidebarLayout>
     );
 }

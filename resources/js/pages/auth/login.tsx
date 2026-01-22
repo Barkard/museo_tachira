@@ -1,8 +1,13 @@
-
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button'; 
+import AuthSplitLayout from '@/layouts/auth/auth-split-layout'; 
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
+import { Loader2 } from 'lucide-react'; 
 
-export default function Login() {
+export default function Login({ status, canResetPassword }: { status?: string; canResetPassword?: boolean }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -17,80 +22,94 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <AuthSplitLayout 
+            title="Bienvenido de nuevo" 
+            description="Ingresa tus credenciales para acceder al sistema de gestión del museo."
+        >
             <Head title="Iniciar Sesión" />
 
-            <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-800">Museo</h1>
-                    <p className="text-gray-600 mt-2">Bienvenido, por favor inicia sesión</p>
-                    <p className="mt-2 text-sm text-gray-600">
-                        ¿No tienes una cuenta?{' '}
-                        <Link
-                            href={route('register')}
-                            className="font-medium text-blue-600 hover:text-blue-500"
-                        >
-                            Regístrate aquí
-                        </Link>
-                    </p>
+            {status && (
+                <div className="mb-4 text-sm font-medium text-green-600 bg-green-50 p-3 rounded-lg border border-green-200">
+                    {status}
+                </div>
+            )}
+
+            <form onSubmit={submit} className="flex flex-col gap-6">
+                {/* EMAIL */}
+                <div className="space-y-2">
+                    <Label htmlFor="email">Correo Electrónico</Label>
+                    <Input
+                        id="email"
+                        type="email"
+                        name="email"
+                        value={data.email}
+                        placeholder="usuario@museotachira.com"
+                        className="block w-full"
+                        autoComplete="username"
+                        autoFocus
+                        onChange={(e) => setData('email', e.target.value)}
+                    />
+                    {errors.email && <p className="text-sm text-red-500 font-medium">{errors.email}</p>}
                 </div>
 
-                <form onSubmit={submit} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Correo Electrónico
-                        </label>
-                        <input
-                            type="email"
-                            value={data.email}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-gray-900"
-                            autoComplete="username"
-                            onChange={(e) => setData('email', e.target.value)}
-                            required
-                        />
-                        {errors.email && (
-                            <div className="text-red-500 text-sm mt-1">{errors.email}</div>
+                {/* CONTRASEÑA */}
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="password">Contraseña</Label>
+                        {canResetPassword && (
+                            <Link
+                                href={route('password.request')}
+                                className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                            >
+                                ¿Olvidaste tu contraseña?
+                            </Link>
                         )}
                     </div>
+                    <Input
+                        id="password"
+                        type="password"
+                        name="password"
+                        value={data.password}
+                        autoComplete="current-password"
+                        onChange={(e) => setData('password', e.target.value)}
+                    />
+                    {errors.password && <p className="text-sm text-red-500 font-medium">{errors.password}</p>}
+                </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Contraseña
-                        </label>
-                        <input
-                            type="password"
-                            value={data.password}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-gray-900"
-                            autoComplete="current-password"
-                            onChange={(e) => setData('password', e.target.value)}
-                            required
-                        />
-                        {errors.password && (
-                            <div className="text-red-500 text-sm mt-1">{errors.password}</div>
-                        )}
-                    </div>
-
-                    <div className="flex items-center">
-                        <input
-                            type="checkbox"
+                {/* RECORDAR Y BOTÓN */}
+                <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="remember"
+                            name="remember"
                             checked={data.remember}
-                            onChange={(e) => setData('remember', e.target.checked)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            onCheckedChange={(checked) => setData('remember', !!checked)}
                         />
-                        <label className="ml-2 block text-sm text-gray-900">
-                            Recordarme
-                        </label>
+                        <Label htmlFor="remember" className="text-sm text-gray-600 font-normal cursor-pointer">
+                            Recordar sesión
+                        </Label>
                     </div>
+                </div>
 
-                    <button
-                        type="submit"
-                        disabled={processing}
-                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50"
-                    >
-                        {processing ? 'Procesando...' : 'Iniciar Sesión'}
-                    </button>
-                </form>
-            </div>
-        </div>
+                <Button type="submit" disabled={processing} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5">
+                    {processing ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Iniciando...
+                        </>
+                    ) : (
+                        'Ingresar al Sistema'
+                    )}
+                </Button>
+                
+                {/* ENLACE REGISTRO (OPCIONAL) */}
+                <div className="text-center text-sm text-gray-500 mt-4">
+                    ¿No tienes cuenta?{' '}
+                    <Link href={route('register')} className="text-blue-600 font-semibold hover:underline">
+                        Solicitar acceso
+                    </Link>
+                </div>
+            </form>
+        </AuthSplitLayout>
     );
 }
