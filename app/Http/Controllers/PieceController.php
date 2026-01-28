@@ -53,12 +53,15 @@ class PieceController extends Controller
             'classification_id' => 'required|exists:classification_categories,id',
             'description' => 'nullable|string',
             'author_ethnicity' => 'nullable|string|max:255',
-            'dimensions' => 'nullable|string|max:255',
+            'dimensions' => 'nullable|array',
+            'dimensions.height' => 'nullable|numeric',
+            'dimensions.width' => 'nullable|numeric',
+            'dimensions.thickness' => 'nullable|numeric',
             'realization_date' => 'nullable|date',
             'brief_history' => 'nullable|string',
             'reference_value' => 'nullable|numeric',
             'is_research_piece' => 'boolean',
-            'photograph_reference' => 'nullable|string|max:255',
+            /* 'photograph_reference' => 'nullable|string|max:255', */
         ]);
 
         Piece::create($validated);
@@ -88,12 +91,15 @@ class PieceController extends Controller
             'classification_id' => 'required|exists:classification_categories,id',
             'description' => 'nullable|string',
             'author_ethnicity' => 'nullable|string|max:255',
-            'dimensions' => 'nullable|string|max:255',
+            'dimensions' => 'nullable|array',
+            'dimensions.height' => 'nullable|numeric',
+            'dimensions.width' => 'nullable|numeric',
+            'dimensions.thickness' => 'nullable|numeric',
             'realization_date' => 'nullable|date',
             'brief_history' => 'nullable|string',
             'reference_value' => 'nullable|numeric',
             'is_research_piece' => 'boolean',
-            'photograph_reference' => 'nullable|string|max:255',
+            /* 'photograph_reference' => 'nullable|string|max:255', */
         ]);
 
         $pieza->update($validated);

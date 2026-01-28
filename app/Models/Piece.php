@@ -8,7 +8,6 @@ class Piece extends Model
 {
     protected $fillable = [
         'classification_id',
-        'movement_id',
         'registration_number',
         'piece_name',
         'description',
@@ -18,7 +17,12 @@ class Piece extends Model
         'brief_history',
         'reference_value',
         'is_research_piece',
-        'photograph_reference',
+        /* 'photograph_reference', */
+    ];
+
+    protected $casts = [
+        'dimensions' => 'array',
+        'is_research_piece' => 'boolean',
     ];
 
     public function classification()

@@ -1,27 +1,27 @@
 import React from 'react';
 import AppLayout from '@/layouts/app-layout';
-import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { useForm } from '@inertiajs/react';
-// Se agregó Settings a la lista de importaciones
 import { 
     User, Mail, Lock, Save, CheckCircle, 
-    AlertCircle, BadgeCheck, Settings 
+    BadgeCheck, Settings, Calendar
 } from 'lucide-react';
 
 interface Props {
     user: {
         id: number;
-        name: string;
-        username: string;
+        first_name: string;
+        last_name: string;
         email: string;
+        birth_date: string;
     };
 }
 
 const EditProfile = ({ user }: Props) => {
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
-        name: user.name,
-        username: user.username || '',
-        email: user.email,
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        email: user.email || '',
+        birth_date: user.birth_date || '',
         password: '',
         password_confirmation: '',
     });
@@ -55,8 +55,12 @@ const EditProfile = ({ user }: Props) => {
                                 <div className="w-24 h-24 bg-slate-100 rounded-full mx-auto mb-4 flex items-center justify-center border-4 border-white shadow-md">
                                     <User className="w-12 h-12 text-slate-400" />
                                 </div>
-                                <h2 className="font-bold text-slate-800 text-lg">{user.name}</h2>
-                                <p className="text-slate-500 text-sm mb-4">@{user.username}</p>
+                                <h2 className="font-bold text-slate-800 text-lg">
+                                    {user.first_name} {user.last_name}
+                                </h2>
+                                <p className="text-slate-500 text-sm mb-4 italic">
+                                    {user.email}
+                                </p>
                                 <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-bold uppercase tracking-wider">
                                     Administrador
                                 </span>
@@ -76,36 +80,54 @@ const EditProfile = ({ user }: Props) => {
                                     <div className="p-6 space-y-4">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Nombre Completo</label>
+                                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Nombres</label>
                                                 <input
                                                     type="text"
-                                                    value={data.name}
-                                                    onChange={(e) => setData('name', e.target.value)}
+                                                    value={data.first_name}
+                                                    onChange={(e) => setData('first_name', e.target.value)}
                                                     className="w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all text-sm"
                                                 />
-                                                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                                                {errors.first_name && <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>}
                                             </div>
                                             <div>
-                                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Nombre de Usuario</label>
+                                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Apellidos</label>
                                                 <input
                                                     type="text"
-                                                    value={data.username}
-                                                    onChange={(e) => setData('username', e.target.value)}
-                                                    className="w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all bg-slate-50 text-sm"
+                                                    value={data.last_name}
+                                                    onChange={(e) => setData('last_name', e.target.value)}
+                                                    className="w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all text-sm"
                                                 />
-                                                {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username}</p>}
+                                                {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Correo Electrónico</label>
-                                            <input
-                                                type="email"
-                                                value={data.email}
-                                                onChange={(e) => setData('email', e.target.value)}
-                                                className="w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all text-sm"
-                                            />
-                                            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Fecha de Nacimiento</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="date"
+                                                        value={data.birth_date}
+                                                        onChange={(e) => setData('birth_date', e.target.value)}
+                                                        className="w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all text-sm pl-10"
+                                                    />
+                                                    <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                                </div>
+                                                {errors.birth_date && <p className="text-red-500 text-xs mt-1">{errors.birth_date}</p>}
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Correo Electrónico</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="email"
+                                                        value={data.email}
+                                                        onChange={(e) => setData('email', e.target.value)}
+                                                        className="w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring-blue-500 transition-all text-sm pl-10"
+                                                    />
+                                                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                                </div>
+                                                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

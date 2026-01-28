@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('brief_history');
             $table->decimal('reference_value', 10, 2);
             $table->boolean('is_research_piece');
-            $table->string('photograph_reference');
+            $table->string('photograph_reference')->nullable();
             $table->timestamps();
         });
     }

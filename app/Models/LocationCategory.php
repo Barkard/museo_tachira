@@ -8,7 +8,8 @@ use App\Models\CurrentLocation;
 class LocationCategory extends Model
 {
     protected $fillable = [
-        'location_name',
+        'name',
+        'description',
     ];
 
     public function currentLocations()

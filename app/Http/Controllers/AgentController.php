@@ -8,81 +8,73 @@ use Inertia\Inertia;
 
 class AgentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $query = Agent::query();
 
         if ($request->has('search')) {
             $search = $request->search;
-            $query->where('name_legal_entity', 'like', "%{$search}%");
+            $query->where('name_legal_entity', 'like', "%{$search}%")
+                  ->orWhere('representative_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
         }
 
-        $agents = $query->paginate(10)->withQueryString();
-
         return Inertia::render('Agents/Index', [
-            'agents' => $agents,
+            'agents' => $query->latest()->paginate(10)->withQueryString(),
             'filters' => $request->only(['search']),
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return Inertia::render('Agents/Create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name_legal_entity' => 'required|string|max:255',
-            'agent_type' => 'required|string|max:50', // E.g., 'Persona', 'Institución'
+            'agent_type' => 'required|string|in:Persona,Entidad,Institución', 
+            'representative_name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
         ]);
 
         Agent::create($validated);
 
-        return redirect()->route('agentes.index')->with('success', 'Agente creado exitosamente.');
+        return redirect()->route('agentes.index')->with('message', 'Agente registrado correctamente.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Agent $agente)
+    public function edit(Agent $agente) 
     {
         return Inertia::render('Agents/Edit', [
-            'agent' => $agente,
+            'agent' => $agente
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Agent $agente)
+    public function update(Request $request, $id)
     {
+        $agent = Agent::findOrFail($id);
+        
         $validated = $request->validate([
             'name_legal_entity' => 'required|string|max:255',
-            'agent_type' => 'required|string|max:50',
+            'representative_name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
         ]);
 
-        $agente->update($validated);
+        $agent->update($validated);
 
-        return redirect()->route('agentes.index')->with('success', 'Agente actualizado exitosamente.');
+        return redirect()->route('agentes.index')->with('message', 'Información actualizada.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Agent $agente)
+    public function destroy($id)
     {
-        $agente->delete();
+        $agent = Agent::findOrFail($id);
+        $agent->delete();
 
-        return redirect()->route('agentes.index')->with('success', 'Agente eliminado exitosamente.');
+        return redirect()->route('agentes.index');
     }
 }
