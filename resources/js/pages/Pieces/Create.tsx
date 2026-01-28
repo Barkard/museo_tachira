@@ -31,7 +31,11 @@ export default function Create({ classifications }: Props) {
         classification_id: '',
         description: '',
         author_ethnicity: '',
-        dimensions: '',
+        dimensions: {
+            height: '',
+            width: '',
+            thickness: '',
+        },
         realization_date: '',
         brief_history: '',
         reference_value: '',
@@ -129,16 +133,42 @@ export default function Create({ classifications }: Props) {
                                 />
                                 {errors.author_ethnicity && <p className="text-red-500 text-sm mt-1">{errors.author_ethnicity}</p>}
                             </div>
-                             <div>
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Dimensiones
+                                    Dimensiones (cm)
                                 </label>
-                                <input
-                                    type="text"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={data.dimensions}
-                                    onChange={(e) => setData('dimensions', e.target.value)}
-                                />
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="Alto"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={data.dimensions.height}
+                                            onChange={(e) => setData('dimensions', { ...data.dimensions, height: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="Ancho"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={data.dimensions.width}
+                                            onChange={(e) => setData('dimensions', { ...data.dimensions, width: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="Grosor"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={data.dimensions.thickness}
+                                            onChange={(e) => setData('dimensions', { ...data.dimensions, thickness: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
                                 {errors.dimensions && <p className="text-red-500 text-sm mt-1">{errors.dimensions}</p>}
                             </div>
                         </div>
