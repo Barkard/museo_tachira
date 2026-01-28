@@ -61,7 +61,7 @@ class PieceController extends Controller
             'brief_history' => 'nullable|string',
             'reference_value' => 'nullable|numeric',
             'is_research_piece' => 'boolean',
-            'photograph_reference' => 'nullable|string|max:255',
+            /* 'photograph_reference' => 'nullable|string|max:255', */
         ]);
 
         Piece::create($validated);
@@ -99,7 +99,7 @@ class PieceController extends Controller
             'brief_history' => 'nullable|string',
             'reference_value' => 'nullable|numeric',
             'is_research_piece' => 'boolean',
-            'photograph_reference' => 'nullable|string|max:255',
+            /* 'photograph_reference' => 'nullable|string|max:255', */
         ]);
 
         $pieza->update($validated);

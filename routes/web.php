@@ -13,6 +13,7 @@ use App\Http\Controllers\CurrentLocationController;
 use App\Http\Controllers\LocationCategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AgentController;
+use App\Http\Controllers\ProfileController;
 
 
 //Route::get('/', function () {
@@ -56,6 +57,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('conservacion', \App\Http\Controllers\ConservationStatusController::class)->parameters(['conservacion' => 'status']);
 });
 
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Rutas de perfil
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
 
 
 require __DIR__.'/settings.php';
