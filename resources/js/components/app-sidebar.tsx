@@ -1,6 +1,17 @@
 import { Link, usePage } from '@inertiajs/react';
 import { 
-    LayoutDashboard, ArrowRightLeft, Package, MapPin, ChevronDown, Tags, ChevronRight, Settings, Users, LogOut 
+    LayoutDashboard, 
+    ArrowRightLeft, 
+    Package, 
+    MapPin, 
+    ChevronDown, 
+    Tags, 
+    ChevronRight, 
+    Settings, 
+    Users, 
+    LogOut,
+    ListTree, 
+    Activity
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -37,11 +48,20 @@ export default function AppSidebar() {
                 },
                 {
                     name: 'Movimientos',
-                    icon: ArrowRightLeft,
+                    icon: ArrowRightLeft, // Mantiene el icono de transferencia
                     current: url.startsWith('/movimientos'),
                     subItems: [
                         { name: 'Registrar Nuevo', href: route('movimientos.create') },
                         { name: 'Historial', href: route('movimientos.index') },
+                    ]
+                },
+                {
+                    name: 'Tipos de Movimiento',
+                    icon: ListTree, // CAMBIO: Icono de jerarquía/catálogo
+                    current: url.startsWith('/tipos-movimiento'),
+                    subItems: [
+                        { name: 'Registrar Nuevo', href: route('tipos-movimiento.create') },
+                        { name: 'Historial', href: route('tipos-movimiento.index') },
                     ]
                 },
             ]
@@ -89,6 +109,15 @@ export default function AppSidebar() {
                     subItems: [
                         { name: 'Directorio', href: route('agentes.index') },
                         { name: 'Nuevo Agente', href: route('agentes.create') },
+                    ]
+                },
+                {
+                    name: 'Estados de Piezas',
+                    icon: Activity,
+                    current: url.startsWith('/estados-piezas'),
+                    subItems: [
+                        { name: 'Directorio', href: route('estados.index') },
+                        { name: 'Nuevo Estado', href: route('estados.create') },
                     ]
                 }
             ]
