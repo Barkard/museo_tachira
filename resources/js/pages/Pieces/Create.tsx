@@ -1,18 +1,12 @@
-
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
-import React, { FormEventHandler } from 'react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import React, { FormEventHandler, useState } from 'react';
+import { X, Image as ImageIcon, ZoomIn, Plus } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Piezas',
-        href: '/piezas',
-    },
-    {
-        title: 'Nueva Pieza',
-        href: '/piezas/create',
-    },
+    { title: 'Piezas', href: '/piezas' },
+    { title: 'Nueva Pieza', href: '/piezas/create' },
 ];
 
 interface Category {
@@ -25,23 +19,49 @@ interface Props {
 }
 
 export default function Create({ classifications }: Props) {
+    // 1. Configuración del formulario
     const { data, setData, post, processing, errors } = useForm({
         piece_name: '',
         registration_number: '',
         classification_id: '',
         description: '',
         author_ethnicity: '',
-        dimensions: {
-            height: '',
-            width: '',
-            thickness: '',
-        },
+        height: '',
+        width: '',
+        depth: '',
         realization_date: '',
         brief_history: '',
-        reference_value: '',
         is_research_piece: false,
         photograph_reference: '',
+        images: [] as File[],
     });
+
+    // 2. Estados visuales
+    const [previews, setPreviews] = useState<string[]>([]);
+    const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+    // 3. Manejo de imágenes
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        
+        if (data.images.length + files.length > 3) {
+            alert('Solo puedes subir un máximo de 3 imágenes.');
+            return;
+        }
+
+        const newImages = [...data.images, ...files];
+        setData('images', newImages);
+
+        const newPreviews = files.map(file => URL.createObjectURL(file));
+        setPreviews(prev => [...prev, ...newPreviews]);
+    };
+
+    const removeImage = (index: number) => {
+        const newImages = data.images.filter((_, i) => i !== index);
+        const newPreviews = previews.filter((_, i) => i !== index);
+        setData('images', newImages);
+        setPreviews(newPreviews);
+    };
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -52,19 +72,43 @@ export default function Create({ classifications }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Nueva Pieza" />
 
+            {/* --- MODAL LIGHTBOX (Zoom) --- */}
+            {lightboxImage && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4"
+                    onClick={() => setLightboxImage(null)}
+                >
+                    <div className="relative max-w-4xl w-full h-full flex items-center justify-center">
+                        <img 
+                            src={lightboxImage} 
+                            alt="Detalle" 
+                            className="max-h-full max-w-full rounded shadow-lg object-contain" 
+                        />
+                        <button 
+                            className="absolute top-4 right-4 text-white bg-gray-800 rounded-full p-2 hover:bg-gray-700 transition"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setLightboxImage(null);
+                            }}
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="max-w-3xl mx-auto w-full bg-white p-8 rounded-lg shadow-sm border border-gray-200">
                     <h2 className="text-2xl font-bold text-gray-800 mb-6">Registrar Nueva Pieza</h2>
 
-                    <form onSubmit={submit} className="space-y-6">
+                    <form onSubmit={submit} className="space-y-6" encType="multipart/form-data">
+                        
+                        {/* --- DATOS DE LA PIEZA --- */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Nombre de la Pieza *
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la Pieza *</label>
                                 <input
-                                    type="text"
-                                    required
+                                    type="text" required
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                     value={data.piece_name}
                                     onChange={(e) => setData('piece_name', e.target.value)}
@@ -73,12 +117,9 @@ export default function Create({ classifications }: Props) {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    No. de Registro *
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">No. de Registro *</label>
                                 <input
-                                    type="text"
-                                    required
+                                    type="text" required
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                     value={data.registration_number}
                                     onChange={(e) => setData('registration_number', e.target.value)}
@@ -88,156 +129,170 @@ export default function Create({ classifications }: Props) {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Clasificación *
-                            </label>
-                            <select
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                                value={data.classification_id}
-                                onChange={(e) => setData('classification_id', e.target.value)}
-                            >
-                                <option value="">Seleccione una clasificación</option>
-                                {classifications.map((c) => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.name}
-                                    </option>
-                                ))}
-                            </select>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Clasificación *</label>
+                            <div className="flex gap-2">
+                                <select
+                                    required
+                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                    value={data.classification_id}
+                                    onChange={(e) => setData('classification_id', e.target.value)}
+                                >
+                                    <option value="">Seleccione una clasificación</option>
+                                    {classifications.map((c) => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                                <button
+                                    type="button"
+                                    onClick={() => router.visit('/clasificaciones/create')}
+                                    className="px-3 py-2 border border-gray-300 rounded-md bg-white text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                    title="Nueva Categoría"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                </button>
+                            </div>
                             {errors.classification_id && <p className="text-red-500 text-sm mt-1">{errors.classification_id}</p>}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Descripción
-                            </label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                             <textarea
                                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                 rows={3}
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}
                             />
-                            {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Autor / Etnia
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Autor / Etnia</label>
                                 <input
                                     type="text"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                     value={data.author_ethnicity}
                                     onChange={(e) => setData('author_ethnicity', e.target.value)}
                                 />
-                                {errors.author_ethnicity && <p className="text-red-500 text-sm mt-1">{errors.author_ethnicity}</p>}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Dimensiones (cm)
-                                </label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    <div>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="Alto"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-                                            value={data.dimensions.height}
-                                            onChange={(e) => setData('dimensions', { ...data.dimensions, height: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="Ancho"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-                                            value={data.dimensions.width}
-                                            onChange={(e) => setData('dimensions', { ...data.dimensions, width: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="Grosor"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-                                            value={data.dimensions.thickness}
-                                            onChange={(e) => setData('dimensions', { ...data.dimensions, thickness: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                                {errors.dimensions && <p className="text-red-500 text-sm mt-1">{errors.dimensions}</p>}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Fecha de Realización
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Realización</label>
                                 <input
                                     type="date"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                     value={data.realization_date}
                                     onChange={(e) => setData('realization_date', e.target.value)}
                                 />
-                                {errors.realization_date && <p className="text-red-500 text-sm mt-1">{errors.realization_date}</p>}
                             </div>
-                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Valor de Referencia
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={data.reference_value}
-                                    onChange={(e) => setData('reference_value', e.target.value)}
+                        </div>
+                        {/* --- BLOQUE DE DIMENSIONES (3 Columnas) --- */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Dimensiones (cm)</label>
+                            <div className="grid grid-cols-3 gap-2">
+                                <input 
+                                    type="number" step="0.01" min="0" placeholder="Alto"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none text-sm focus:ring-2 focus:ring-blue-500"
+                                    value={data.height} onChange={(e) => setData('height', e.target.value)}
                                 />
-                                {errors.reference_value && <p className="text-red-500 text-sm mt-1">{errors.reference_value}</p>}
+                                <input 
+                                    type="number" step="0.01" min="0" placeholder="Ancho"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none text-sm focus:ring-2 focus:ring-blue-500"
+                                    value={data.width} onChange={(e) => setData('width', e.target.value)}
+                                />
+                                <input 
+                                    type="number" step="0.01" min="0" placeholder="Profundida."
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none text-sm focus:ring-2 focus:ring-blue-500"
+                                    value={data.depth} onChange={(e) => setData('depth', e.target.value)}
+                                />
                             </div>
                         </div>
 
+
+
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Breve Historia
-                            </label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Breve Historia</label>
                             <textarea
                                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                 rows={2}
                                 value={data.brief_history}
                                 onChange={(e) => setData('brief_history', e.target.value)}
                             />
-                             {errors.brief_history && <p className="text-red-500 text-sm mt-1">{errors.brief_history}</p>}
                         </div>
 
-                         <div className="flex items-center gap-2 mt-4">
+                         <div className="flex items-center gap-2">
                             <input
-                                type="checkbox"
-                                id="is_research_piece"
+                                type="checkbox" id="is_research_piece"
                                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                 checked={data.is_research_piece}
                                 onChange={(e) => setData('is_research_piece', e.target.checked)}
                             />
-                            <label htmlFor="is_research_piece" className="block text-sm font-medium text-gray-700">
-                                ¿Es pieza de investigación?
-                            </label>
+                            <label htmlFor="is_research_piece" className="block text-sm font-medium text-gray-700">¿Es pieza de investigación?</label>
                         </div>
 
-                        <div className="flex justify-end gap-3 pt-6">
-                            <Link
-                                href={route('piezas.index')}
-                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                            >
-                                Cancelar
-                            </Link>
+                        {/* --- GALERÍA DE FOTOS--- */}
+                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mt-8">
+                            <h3 className="text-md font-semibold text-gray-800 mb-4">Imágenes De La Pieza</h3>
+                            <label className="block text-sm text-gray-600 mb-4">
+                                Puedes subir hasta 3 fotografías de la pieza. Haz clic en una imagen para agrandarla.
+                            </label>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                {/* Botón Subir */}
+                                {previews.length < 3 && (
+                                    <div className="relative flex flex-col items-center justify-center h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 transition hover:border-blue-400 group bg-white">
+                                        <input 
+                                            type="file" 
+                                            multiple 
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                        />
+                                        <div className="flex flex-col items-center group-hover:scale-105 transition-transform">
+                                            <ImageIcon className="w-8 h-8 text-gray-400 mb-2 group-hover:text-blue-500" />
+                                            <span className="text-sm text-gray-500 font-medium group-hover:text-blue-600">Agregar Foto</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Lista de Previsualizaciones */}
+                                {previews.map((src, index) => (
+                                    <div key={index} className="relative group h-40 border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                                        {/* La imagen */}
+                                        <img 
+                                            src={src} 
+                                            alt={`Foto ${index + 1}`} 
+                                            className="w-full h-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
+                                            onClick={() => setLightboxImage(src)}
+                                        />
+                                        
+                                        {/* Botón Eliminar */}
+                                        <button
+                                            type="button"
+                                            onClick={() => removeImage(index)}
+                                            className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-red-600 z-20"
+                                            title="Eliminar foto"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+
+                                        {/* Overlay SÓLO BOTÓN  */}
+                                        <div 
+                                            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                                        >
+                                            <div className="bg-blue-600 text-white p-2 rounded-full shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-all">
+                                                <ZoomIn className="w-5 h-5" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            {errors.images && <p className="text-red-500 text-sm mt-2 font-medium">{errors.images}</p>}
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+                            <Link href={route('piezas.index')} className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">Cancelar</Link>
                             <button
-                                type="submit"
-                                disabled={processing}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                                type="submit" disabled={processing}
+                                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium transition shadow-sm"
                             >
                                 {processing ? 'Guardando...' : 'Guardar Pieza'}
                             </button>

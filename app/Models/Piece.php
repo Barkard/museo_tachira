@@ -13,16 +13,16 @@ class Piece extends Model
         'piece_name',
         'description',
         'author_ethnicity',
-        'dimensions',
+        'height',
+        'width',
+        'depth',
         'realization_date',
         'brief_history',
-        'reference_value',
         'is_research_piece',
         'photograph_reference',
     ];
 
     protected $casts = [
-        'dimensions' => 'array',
         'is_research_piece' => 'boolean',
     ];
 
@@ -49,5 +49,9 @@ class Piece extends Model
     public function conservationStatuses()
     {
         return $this->hasMany(ConservationStatus::class);
+    }
+    public function images()
+    {
+        return $this->hasMany(PieceImage::class);
     }
 }
