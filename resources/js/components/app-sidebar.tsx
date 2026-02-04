@@ -110,8 +110,8 @@ export default function AppSidebar() {
                 </span>
             </div>
 
-            {/* MENÚ */}
-            <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6 custom-scrollbar">
+            {/* MENÚ - CON ID AGREGADO */}
+            <div id="sidebar-menu" className="flex-1 overflow-y-auto py-4 px-3 space-y-6 custom-scrollbar">
                 {navigation.map((section, index) => (
                     <div key={index}>
                         <h3 className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">

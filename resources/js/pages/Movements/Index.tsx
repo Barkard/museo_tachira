@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import React, { useState, useCallback } from 'react';
 import { debounce } from 'lodash';
 import { Pencil, Trash2, Plus, Search, ArrowRightLeft } from 'lucide-react';
+import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; // <--- 1. Importación
 
 interface Movement {
     id: number;
@@ -54,15 +55,50 @@ export default function Index({ movements, filters }: Props) {
         { title: 'Historial de Movimientos', href: route('movimientos.index') },
     ];
 
+    // <--- 2. Definición de pasos del Tutorial
+    const movementsSteps: TutorialStep[] = [
+        {
+            element: '#movements-search',
+            popover: {
+                title: 'Buscador de Movimientos',
+                description: 'Filtra el historial por nombre de pieza o agente involucrado.',
+                side: 'bottom',
+                align: 'start',
+            }
+        },
+        {
+            element: '#create-movement-btn',
+            popover: {
+                title: 'Registrar Nuevo Movimiento',
+                description: 'Registra una entrada, salida, préstamo o donación de una pieza.',
+                side: 'left',
+                align: 'center',
+            }
+        },
+        {
+            element: '#movements-table',
+            popover: {
+                title: 'Historial Detallado',
+                description: 'Consulta la bitácora completa de transacciones. Aquí verás qué pieza se movió, quién la recibió y cuándo.',
+                side: 'top',
+                align: 'center',
+            }
+        }
+    ];
+
     return (
         <AppSidebarLayout breadcrumbs={breadcrumbs} header="Historial de Movimientos">
             <Head title="Movimientos" />
+
+            {/* <--- 3. Renderizamos el Tutorial */}
+            <TutorialGuide tutorialKey="movements-index-v1" steps={movementsSteps} />
 
             <div className="space-y-6">
                 
                 {/* BARRA DE HERRAMIENTAS */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="relative w-full sm:w-80">
+                    {/* <--- 4. ID Agregado */}
+                    <div id="movements-search" className="relative w-full sm:w-80">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search className="h-4 w-4 text-gray-400" />
                         </div>
@@ -75,7 +111,9 @@ export default function Index({ movements, filters }: Props) {
                         />
                     </div>
                     
+                    {/* <--- 4. ID Agregado */}
                     <Link
+                        id="create-movement-btn"
                         href={route('movimientos.create')}
                         className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
@@ -85,7 +123,8 @@ export default function Index({ movements, filters }: Props) {
                 </div>
 
                 {/* TABLA */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                {/* <--- 4. ID Agregado */}
+                <div id="movements-table" className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">

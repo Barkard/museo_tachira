@@ -1,15 +1,16 @@
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Save, Building2, User } from 'lucide-react';
+import { ArrowLeft, Save, Building2, User, Phone, MapPin } from 'lucide-react';
+import React from 'react';
+import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; // <--- 1. Importación
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
         name_legal_entity: '',
-        agent_type: 'Persona', 
         representative_name: '',
-        email: '',
-        phone: '',
-        address: '',
+        phone_number: '',
+        email_address: '',
+        physical_address: '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -17,87 +18,180 @@ export default function Create() {
         post(route('agentes.store'));
     };
 
-    const inputClasses = "w-full rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500";
+    const inputClasses = "w-full rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors";
+
+    // <--- 2. Definición de pasos del Tutorial
+    const createAgentSteps: TutorialStep[] = [
+        {
+            element: '#create-agent-header',
+            popover: {
+                title: 'Registrar Nuevo Agente',
+                description: 'Utiliza este formulario para dar de alta a una persona, museo o institución en el sistema.',
+                side: 'bottom',
+                align: 'start',
+            }
+        },
+        {
+            element: '#agent-main-info',
+            popover: {
+                title: 'Identificación',
+                description: 'Ingresa el nombre legal (o nombre completo de la persona) y, si aplica, el nombre del representante encargado.',
+                side: 'top',
+                align: 'start',
+            }
+        },
+        {
+            element: '#agent-contact-info',
+            popover: {
+                title: 'Datos de Contacto',
+                description: 'Es importante registrar un teléfono o correo electrónico para futuras comunicaciones.',
+                side: 'right',
+                align: 'center',
+            }
+        },
+        {
+            element: '#agent-address-info',
+            popover: {
+                title: 'Dirección Física',
+                description: 'Opcional: Registra la ubicación física de la entidad o persona.',
+                side: 'top',
+                align: 'start',
+            }
+        },
+        {
+            element: '#submit-agent-btn',
+            popover: {
+                title: 'Guardar Registro',
+                description: 'Finaliza el proceso guardando la información en el directorio.',
+                side: 'left',
+                align: 'center',
+            }
+        }
+    ];
 
     return (
-        <AppSidebarLayout breadcrumbs={[{ title: 'Agentes', href: route('agentes.index') }, { title: 'Nuevo', href: '#' }]} header="Registrar Nuevo Agente">
-            <Head title="Crear Agente" />
-            
-            <div className="max-w-2xl mx-auto">
-                <Link href={route('agentes.index')} className="flex items-center text-sm text-gray-500 hover:text-gray-700 mb-6">
+        <AppSidebarLayout breadcrumbs={[{ title: 'Agentes', href: route('agentes.index') }, { title: 'Nuevo', href: '#' }]} header="Registrar Agente">
+            <Head title="Nuevo Agente" />
+
+            {/* <--- 3. Renderizamos el Tutorial */}
+            <TutorialGuide tutorialKey="agents-create-v1" steps={createAgentSteps} />
+
+            <div className="max-w-4xl mx-auto">
+                <Link href={route('agentes.index')} className="flex items-center text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors">
                     <ArrowLeft className="w-4 h-4 mr-1" /> Volver al directorio
                 </Link>
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                            <User className="w-5 h-5" />
+                    {/* ENCABEZADO */}
+                    {/* <--- 4. ID Agregado */}
+                    <div id="create-agent-header" className="px-6 py-5 border-b border-gray-100 bg-gray-50/80 flex items-center gap-4">
+                        <div className="p-3 bg-blue-600 text-white rounded-xl shadow-sm">
+                            <Building2 className="w-6 h-6" />
                         </div>
-                        <h2 className="font-bold text-gray-800">Datos del Agente</h2>
+                        <div>
+                            <h2 className="text-lg font-bold text-gray-900">Nuevo Contacto</h2>
+                            <p className="text-sm text-gray-500">Registre una persona natural o jurídica.</p>
+                        </div>
                     </div>
 
-                    <form onSubmit={submit} className="p-6 space-y-5">
+                    <form onSubmit={submit} className="p-8 space-y-8">
                         
-                        {/* TIPO DE AGENTE (SOLUCIÓN AL ERROR) */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Agente *</label>
-                            <div className="flex gap-4">
-                                <label className={`flex-1 border rounded-xl p-4 cursor-pointer transition-all ${data.agent_type === 'Persona' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200 hover:border-blue-200'}`}>
-                                    <div className="flex items-center gap-3">
-                                        <input type="radio" name="agent_type" value="Persona" checked={data.agent_type === 'Persona'} onChange={e => setData('agent_type', e.target.value)} className="text-blue-600 focus:ring-blue-500" />
-                                        <div>
-                                            <span className="block font-bold text-gray-900">Persona Natural</span>
-                                            <span className="text-xs text-gray-500">Donante particular, investigador, etc.</span>
-                                        </div>
-                                    </div>
+                        {/* SECCIÓN 1: IDENTIFICACIÓN */}
+                        {/* <--- 4. ID Agregado */}
+                        <div id="agent-main-info" className="space-y-6">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b pb-2">Información Principal</h3>
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Nombre / Razón Social *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className={inputClasses}
+                                        placeholder="Ej. Museo de Bellas Artes, Juan Pérez..."
+                                        value={data.name_legal_entity}
+                                        onChange={e => setData('name_legal_entity', e.target.value)}
+                                        autoFocus
+                                    />
+                                    {errors.name_legal_entity && <p className="text-red-500 text-xs mt-1 font-medium">{errors.name_legal_entity}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                        <User className="w-4 h-4 text-gray-400" /> Representante
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className={inputClasses}
+                                        placeholder="Nombre del encargado (Opcional)"
+                                        value={data.representative_name}
+                                        onChange={e => setData('representative_name', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* SECCIÓN 2: CONTACTO */}
+                        {/* <--- 4. ID Agregado */}
+                        <div id="agent-contact-info" className="space-y-6">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b pb-2">Datos de Contacto</h3>
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                        <Phone className="w-4 h-4 text-gray-400" /> Teléfono
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className={inputClasses}
+                                        placeholder="+58 414..."
+                                        value={data.phone_number}
+                                        onChange={e => setData('phone_number', e.target.value)}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Correo Electrónico
+                                    </label>
+                                    <input
+                                        type="email"
+                                        className={inputClasses}
+                                        placeholder="correo@ejemplo.com"
+                                        value={data.email_address}
+                                        onChange={e => setData('email_address', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* SECCIÓN 3: UBICACIÓN */}
+                        {/* <--- 4. ID Agregado */}
+                        <div id="agent-address-info" className="space-y-6">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b pb-2">Ubicación</h3>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                    <MapPin className="w-4 h-4 text-gray-400" /> Dirección Física
                                 </label>
-                                <label className={`flex-1 border rounded-xl p-4 cursor-pointer transition-all ${data.agent_type === 'Entidad' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200 hover:border-blue-200'}`}>
-                                    <div className="flex items-center gap-3">
-                                        <input type="radio" name="agent_type" value="Entidad" checked={data.agent_type === 'Entidad'} onChange={e => setData('agent_type', e.target.value)} className="text-blue-600 focus:ring-blue-500" />
-                                        <div>
-                                            <span className="block font-bold text-gray-900">Entidad / Institución</span>
-                                            <span className="text-xs text-gray-500">Museo, Universidad, Gobierno.</span>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
-                            {errors.agent_type && <p className="text-red-500 text-xs mt-1">{errors.agent_type}</p>}
-                        </div>
-
-                        {/* NOMBRE */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Legal / Razón Social *</label>
-                            <input type="text" className={inputClasses} value={data.name_legal_entity} onChange={e => setData('name_legal_entity', e.target.value)} placeholder="Ej: María Pérez o Museo de Ciencias" />
-                            {errors.name_legal_entity && <p className="text-red-500 text-xs mt-1">{errors.name_legal_entity}</p>}
-                        </div>
-
-                        {/* REPRESENTANTE (Solo si es entidad) */}
-                        {data.agent_type === 'Entidad' && (
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Persona de Contacto</label>
-                                <input type="text" className={inputClasses} value={data.representative_name} onChange={e => setData('representative_name', e.target.value)} placeholder="¿Con quién nos comunicamos?" />
-                            </div>
-                        )}
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                                <input type="text" className={inputClasses} value={data.phone} onChange={e => setData('phone', e.target.value)} />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
-                                <input type="email" className={inputClasses} value={data.email} onChange={e => setData('email', e.target.value)} />
+                                <textarea
+                                    rows={3}
+                                    className={inputClasses}
+                                    placeholder="Dirección completa..."
+                                    value={data.physical_address}
+                                    onChange={e => setData('physical_address', e.target.value)}
+                                />
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Dirección Física</label>
-                            <textarea rows={3} className={inputClasses} value={data.address} onChange={e => setData('address', e.target.value)} />
-                        </div>
-
-                        <div className="flex justify-end pt-4">
-                            <button disabled={processing} className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-bold text-sm shadow-md">
-                                <Save className="w-4 h-4 mr-2" /> Guardar Agente
+                        {/* BOTÓN FINAL */}
+                        <div className="pt-6 border-t border-gray-100 flex justify-end">
+                            {/* <--- 4. ID Agregado */}
+                            <button 
+                                id="submit-agent-btn"
+                                disabled={processing} 
+                                className="flex items-center bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-200 transition-all active:scale-95"
+                            >
+                                <Save className="w-5 h-5 mr-2" /> 
+                                Guardar Agente
                             </button>
                         </div>
                     </form>

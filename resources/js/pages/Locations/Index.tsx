@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState, ChangeEvent } from 'react';
 import { Pencil, Trash2, Plus, Search, MapPin } from 'lucide-react';
 import { debounce } from 'lodash';
+import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; 
 
 interface Location {
     id: number;
@@ -49,15 +50,49 @@ export default function Index({ locations, filters }: IndexProps) {
         { title: 'Ubicaciones', href: route('ubicaciones.index') },
     ];
 
+    // <--- 2. Definición de pasos del Tutorial
+    const locationsSteps: TutorialStep[] = [
+        {
+            element: '#locations-search',
+            popover: {
+                title: 'Buscador de Ubicaciones',
+                description: 'Encuentra rápidamente una sala, estante o vitrina específica por su nombre.',
+                side: 'bottom',
+                align: 'start',
+            }
+        },
+        {
+            element: '#create-location-btn',
+            popover: {
+                title: 'Nueva Ubicación',
+                description: 'Registra un nuevo espacio físico donde se pueden almacenar piezas (Ej. "Sala 1", "Vitrina A").',
+                side: 'left',
+                align: 'center',
+            }
+        },
+        {
+            element: '#locations-table',
+            popover: {
+                title: 'Listado de Espacios',
+                description: 'Aquí puedes ver y gestionar todas las zonas registradas en el museo.',
+                side: 'top',
+                align: 'center',
+            }
+        }
+    ];
+
     return (
         <AppSidebarLayout breadcrumbs={breadcrumbs} header="Ubicaciones del Museo">
             <Head title="Ubicaciones" />
+
+            <TutorialGuide tutorialKey="locations-index-v1" steps={locationsSteps} />
 
             <div className="space-y-6">
 
                 {/* BARRA DE HERRAMIENTAS */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="relative w-full sm:w-72">
+                    {/* <--- 4. ID Agregado */}
+                    <div id="locations-search" className="relative w-full sm:w-72">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search className="h-4 w-4 text-gray-400" />
                         </div>
@@ -70,7 +105,9 @@ export default function Index({ locations, filters }: IndexProps) {
                         />
                     </div>
 
+                    {/* <--- 4. ID Agregado */}
                     <Link
+                        id="create-location-btn"
                         href={route('ubicaciones.create')}
                         className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
                     >
@@ -80,7 +117,8 @@ export default function Index({ locations, filters }: IndexProps) {
                 </div>
 
                 {/* TABLA DE RESULTADOS */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                {/* <--- 4. ID Agregado */}
+                <div id="locations-table" className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     {locations.data.length === 0 ? (
                         <div className="p-12 text-center flex flex-col items-center justify-center">
                             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -132,7 +170,7 @@ export default function Index({ locations, filters }: IndexProps) {
                         </div>
                     )}
 
-                    {/* Paginación simple si es necesaria */}
+                    {/* Paginación simple */}
                     {locations.links && locations.links.length > 3 && (
                         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                             <span className="text-xs text-gray-500">Mostrando {locations.data.length} resultados</span>

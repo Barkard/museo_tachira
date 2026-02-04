@@ -1,8 +1,9 @@
-import AppLayout from '@/layouts/app-layout';
+import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import React, { FormEventHandler, useState } from 'react';
 import { X, Image as ImageIcon, ZoomIn, Plus } from 'lucide-react';
+import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; 
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Piezas', href: '/piezas' },
@@ -68,9 +69,69 @@ export default function Create({ classifications }: Props) {
         post(route('piezas.store'));
     };
 
+    // <--- 2. Definición de pasos del Tutorial
+    const createPieceSteps: TutorialStep[] = [
+        {
+            element: '#create-piece-header',
+            popover: {
+                title: 'Registro de Nueva Pieza',
+                description: 'Utiliza este formulario para ingresar una obra al inventario del museo.',
+                side: 'bottom',
+                align: 'start',
+            }
+        },
+        {
+            element: '#general-info-section',
+            popover: {
+                title: 'Información Básica',
+                description: 'Ingresa el nombre oficial y el número de registro único de la pieza.',
+                side: 'top',
+                align: 'start',
+            }
+        },
+        {
+            element: '#classification-section',
+            popover: {
+                title: 'Clasificación',
+                description: 'Selecciona la categoría. Si no existe, puedes crear una nueva rápidamente con el botón (+).',
+                side: 'right',
+                align: 'center',
+            }
+        },
+        {
+            element: '#dimensions-section',
+            popover: {
+                title: 'Dimensiones Físicas',
+                description: 'Registra las medidas exactas (Alto, Ancho, Profundidad) en centímetros.',
+                side: 'top',
+                align: 'start',
+            }
+        },
+        {
+            element: '#images-section',
+            popover: {
+                title: 'Galería Fotográfica',
+                description: 'Sube hasta 3 fotos de referencia. Puedes hacer clic en ellas para verlas en detalle.',
+                side: 'top',
+                align: 'center',
+            }
+        },
+        {
+            element: '#submit-btn',
+            popover: {
+                title: 'Guardar Registro',
+                description: 'Una vez completado, haz clic aquí para guardar la pieza en la base de datos.',
+                side: 'left',
+                align: 'center',
+            }
+        }
+    ];
+
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppSidebarLayout breadcrumbs={breadcrumbs} header="Nueva Pieza">
             <Head title="Nueva Pieza" />
+
+            <TutorialGuide tutorialKey="pieces-create-v1" steps={createPieceSteps} />
 
             {/* --- MODAL LIGHTBOX (Zoom) --- */}
             {lightboxImage && (
@@ -99,12 +160,14 @@ export default function Create({ classifications }: Props) {
 
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="max-w-3xl mx-auto w-full bg-white p-8 rounded-lg shadow-sm border border-gray-200">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-6">Registrar Nueva Pieza</h2>
+                    {/* <--- 4. ID Agregado */}
+                    <h2 id="create-piece-header" className="text-2xl font-bold text-gray-800 mb-6">Registrar Nueva Pieza</h2>
 
                     <form onSubmit={submit} className="space-y-6" encType="multipart/form-data">
                         
                         {/* --- DATOS DE LA PIEZA --- */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* <--- 4. ID Agregado */}
+                        <div id="general-info-section" className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la Pieza *</label>
                                 <input
@@ -128,7 +191,8 @@ export default function Create({ classifications }: Props) {
                             </div>
                         </div>
 
-                        <div>
+                        {/* <--- 4. ID Agregado */}
+                        <div id="classification-section">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Clasificación *</label>
                             <div className="flex gap-2">
                                 <select
@@ -184,8 +248,10 @@ export default function Create({ classifications }: Props) {
                                 />
                             </div>
                         </div>
+                        
                         {/* --- BLOQUE DE DIMENSIONES (3 Columnas) --- */}
-                        <div>
+                        {/* <--- 4. ID Agregado */}
+                        <div id="dimensions-section">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Dimensiones (cm)</label>
                             <div className="grid grid-cols-3 gap-2">
                                 <input 
@@ -205,8 +271,6 @@ export default function Create({ classifications }: Props) {
                                 />
                             </div>
                         </div>
-
-
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Breve Historia</label>
@@ -229,7 +293,8 @@ export default function Create({ classifications }: Props) {
                         </div>
 
                         {/* --- GALERÍA DE FOTOS--- */}
-                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mt-8">
+                        {/* <--- 4. ID Agregado */}
+                        <div id="images-section" className="bg-gray-50 p-6 rounded-lg border border-gray-200 mt-8">
                             <h3 className="text-md font-semibold text-gray-800 mb-4">Imágenes De La Pieza</h3>
                             <label className="block text-sm text-gray-600 mb-4">
                                 Puedes subir hasta 3 fotografías de la pieza. Haz clic en una imagen para agrandarla.
@@ -290,7 +355,9 @@ export default function Create({ classifications }: Props) {
 
                         <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
                             <Link href={route('piezas.index')} className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">Cancelar</Link>
+                            {/* <--- 4. ID Agregado */}
                             <button
+                                id="submit-btn"
                                 type="submit" disabled={processing}
                                 className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium transition shadow-sm"
                             >
@@ -300,6 +367,6 @@ export default function Create({ classifications }: Props) {
                     </form>
                 </div>
             </div>
-        </AppLayout>
+        </AppSidebarLayout>
     );
 }
