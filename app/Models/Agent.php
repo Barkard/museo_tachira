@@ -8,7 +8,11 @@ class Agent extends Model
 {
     protected $fillable = [
         'name_legal_entity',
-        'agent_type',
+        'agent_type', 
+        'representative_name',
+        'email',
+        'phone',
+        'address'
     ];
 
     public function movements()

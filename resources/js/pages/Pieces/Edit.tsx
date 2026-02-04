@@ -27,7 +27,14 @@ interface Piece {
     classification_id: number;
     description?: string;
     author_ethnicity?: string;
-    dimensions?: string;
+    dimensions?: {
+        height?: string;
+        width?: string;
+        thickness?: string;
+    } | null;
+        height?: string;
+        width?: string;
+        depth?: string;
     realization_date?: string;
     brief_history?: string;
     reference_value?: number;
@@ -47,7 +54,14 @@ export default function Edit({ piece, classifications }: Props) {
         classification_id: piece.classification_id.toString(),
         description: piece.description || '',
         author_ethnicity: piece.author_ethnicity || '',
-        dimensions: piece.dimensions || '',
+        dimensions: {
+            height: piece.dimensions?.height || '',
+            width: piece.dimensions?.width || '',
+            thickness: piece.dimensions?.thickness || '',
+        },
+            height: piece.height || '',
+            width: piece.width || '',
+            depth: piece.depth || '',
         realization_date: piece.realization_date || '',
         brief_history: piece.brief_history || '',
         reference_value: piece.reference_value || '',
@@ -81,17 +95,28 @@ export default function Edit({ piece, classifications }: Props) {
                                     value={data.piece_name}
                                     onChange={(e) => setData('piece_name', e.target.value)}
                                 />
-                                {errors.piece_name && <p className="text-red-500 text-sm mt-1">{errors.piece_name}</p>}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    No. de Registro *
-                                </label>
+                                {/* Bloque de dimensiones */}
+                                <div className="grid grid-cols-3 gap-2 mt-2">
+                                    <input 
+                                        type="number" step="0.01" min="0" placeholder="Alto"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none text-sm focus:ring-2 focus:ring-blue-500"
+                                        value={data.height} onChange={(e) => setData('height', e.target.value)}
+                                    />
+                                    <input 
+                                        type="number" step="0.01" min="0" placeholder="Ancho"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none text-sm focus:ring-2 focus:ring-blue-500"
+                                        value={data.width} onChange={(e) => setData('width', e.target.value)}
+                                    />
+                                    <input 
+                                        type="number" step="0.01" min="0" placeholder="Prof."
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none text-sm focus:ring-2 focus:ring-blue-500"
+                                        value={data.depth} onChange={(e) => setData('depth', e.target.value)}
+                                    />
+                                </div>
                                 <input
                                     type="text"
                                     required
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none mt-2"
                                     value={data.registration_number}
                                     onChange={(e) => setData('registration_number', e.target.value)}
                                 />
@@ -145,16 +170,42 @@ export default function Edit({ piece, classifications }: Props) {
                                 />
                                 {errors.author_ethnicity && <p className="text-red-500 text-sm mt-1">{errors.author_ethnicity}</p>}
                             </div>
-                             <div>
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Dimensiones
+                                    Dimensiones (cm)
                                 </label>
-                                <input
-                                    type="text"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={data.dimensions}
-                                    onChange={(e) => setData('dimensions', e.target.value)}
-                                />
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="Alto"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={data.dimensions.height}
+                                            onChange={(e) => setData('dimensions', { ...data.dimensions, height: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="Ancho"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={data.dimensions.width}
+                                            onChange={(e) => setData('dimensions', { ...data.dimensions, width: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="Grosor"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={data.dimensions.thickness}
+                                            onChange={(e) => setData('dimensions', { ...data.dimensions, thickness: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
                                 {errors.dimensions && <p className="text-red-500 text-sm mt-1">{errors.dimensions}</p>}
                             </div>
                         </div>
@@ -173,17 +224,6 @@ export default function Edit({ piece, classifications }: Props) {
                                 {errors.realization_date && <p className="text-red-500 text-sm mt-1">{errors.realization_date}</p>}
                             </div>
                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Valor de Referencia
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={data.reference_value}
-                                    onChange={(e) => setData('reference_value', e.target.value)}
-                                />
-                                {errors.reference_value && <p className="text-red-500 text-sm mt-1">{errors.reference_value}</p>}
                             </div>
                         </div>
 

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\ClassificationCategory;
 use App\Models\Piece;
+use App\Models\PieceImage; 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Storage;
 
 class PieceController extends Controller
 {
@@ -53,15 +55,28 @@ class PieceController extends Controller
             'classification_id' => 'required|exists:classification_categories,id',
             'description' => 'nullable|string',
             'author_ethnicity' => 'nullable|string|max:255',
-            'dimensions' => 'nullable|string|max:255',
             'realization_date' => 'nullable|date',
             'brief_history' => 'nullable|string',
-            'reference_value' => 'nullable|numeric',
+
             'is_research_piece' => 'boolean',
             'photograph_reference' => 'nullable|string|max:255',
+            'images' => 'nullable|array|max:3',
+            'images.*' => 'image|max:5120', 
         ]);
 
-        Piece::create($validated);
+        // Crear la pieza
+        $piece = Piece::create($validated);
+
+        // Procesar para comprimir la imagen pinche patroclo.
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $optimizedImage = $this->optimizeToBase64($image);
+                
+                if ($optimizedImage) {
+                    $piece->images()->create(['path' => $optimizedImage]);
+                }
+            }
+        }
 
         return redirect()->route('piezas.index')->with('success', 'Pieza creada exitosamente.');
     }
@@ -71,6 +86,9 @@ class PieceController extends Controller
      */
     public function edit(Piece $pieza)
     {
+        // imágenes existentes
+        $pieza->load('images'); 
+
         return Inertia::render('Pieces/Edit', [
             'piece' => $pieza,
             'classifications' => ClassificationCategory::all(),
@@ -88,15 +106,26 @@ class PieceController extends Controller
             'classification_id' => 'required|exists:classification_categories,id',
             'description' => 'nullable|string',
             'author_ethnicity' => 'nullable|string|max:255',
-            'dimensions' => 'nullable|string|max:255',
             'realization_date' => 'nullable|date',
             'brief_history' => 'nullable|string',
-            'reference_value' => 'nullable|numeric',
+
             'is_research_piece' => 'boolean',
             'photograph_reference' => 'nullable|string|max:255',
+            'images' => 'nullable|array|max:3',
+            'images.*' => 'image|max:5120',
         ]);
 
         $pieza->update($validated);
+
+        // aqui pa las nuevas imagenes
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $optimizedImage = $this->optimizeToBase64($image);
+                if ($optimizedImage) {
+                    $pieza->images()->create(['path' => $optimizedImage]);
+                }
+            }
+        }
 
         return redirect()->route('piezas.index')->with('success', 'Pieza actualizada exitosamente.');
     }
@@ -107,7 +136,69 @@ class PieceController extends Controller
     public function destroy(Piece $pieza)
     {
         $pieza->delete();
-
         return redirect()->route('piezas.index')->with('success', 'Pieza eliminada exitosamente.');
+    }
+
+    /**
+     * Función Privada para Optimizar Imágenes "patroclo cochina" (Redimensionar + WebP)
+     */
+    private function optimizeToBase64($file)
+    {
+        try {
+            // 1. Crear una imagen desde el archivo original
+            $sourceString = file_get_contents($file);
+            $image = imagecreatefromstring($sourceString);
+            
+            if (!$image) return null;
+
+            // 2. Obtener dimensiones originales
+            $width = imagesx($image);
+            $height = imagesy($image);
+            
+            // 3. Definir ancho máximo 
+            $maxWidth = 1000;
+
+            // Si la imagen es más grande, se redimensionamos
+            if ($width > $maxWidth) {
+                $newWidth = $maxWidth;
+                $newHeight = floor($height * ($maxWidth / $width));
+                
+                // Crear lienzo vacío
+                $trueColor = imagecreatetruecolor($newWidth, $newHeight);
+                
+                // Mantener transparencia
+                imagealphablending($trueColor, false);
+                imagesavealpha($trueColor, true);
+                
+                // Copiar y redimensionar
+                imagecopyresampled($trueColor, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+                $finalImage = $trueColor;
+            } else {
+                // Si es pequeña, la dejamos tal cual
+                $finalImage = $image;
+                // Aún así nos aseguramos de preservar transparencia
+                imagepalettetotruecolor($finalImage);
+                imagealphablending($finalImage, false);
+                imagesavealpha($finalImage, true);
+            }
+
+            // 4. Comprimir y Convertir a WebP en memoria (Buffer)
+            ob_start();
+            // Calidad del 80% 
+            imagewebp($finalImage, null, 80); 
+            $buffer = ob_get_contents();
+            ob_end_clean();
+
+            // Limpiar memoria RAM
+            imagedestroy($image);
+            if (isset($trueColor)) imagedestroy($trueColor);
+
+            // 5. Retornar el string Base64 listo para la BD
+            return 'data:image/webp;base64,' . base64_encode($buffer);
+
+        } catch (\Exception $e) {
+            // En caso de error (ej. formato raro), devolvemos null o manejamos el error
+            return null;
+        }
     }
 }

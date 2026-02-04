@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 
+
 @import "tw-animate-css";
 
 @source '../views';
@@ -132,12 +133,24 @@
     --sidebar-ring: oklch(0.439 0 0);
 }
 
-@layer base {
-    * {
-        @apply border-border;
-    }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-    body {
-        @apply bg-background text-foreground;
+
+@layer utilities {
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #334155;
+        border-radius: 20px;
     }
 }
