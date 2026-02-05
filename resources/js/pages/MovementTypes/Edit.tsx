@@ -15,7 +15,7 @@ const MOVEMENT_OPTIONS = [
 ];
 
 export default function Edit({ type }: any) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors } = useForm<{ movement_name: string }>({
         movement_name: type.movement_name,
     });
 
