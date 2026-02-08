@@ -1,8 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
-import { 
-    LayoutDashboard, ArrowRightLeft, Package, MapPin, ChevronDown, Tags, ChevronRight, Settings, Users, LogOut 
+import {
+    LayoutDashboard, Package, MapPin, ChevronDown, ChevronRight, Settings, Users, LogOut,
+    type LucideIcon
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface SubItem {
     name: string;
@@ -12,7 +13,7 @@ interface SubItem {
 interface NavItemProps {
     name: string;
     href?: string;
-    icon: any; 
+    icon: LucideIcon;
     current: boolean;
     subItems?: SubItem[];
 }
@@ -29,20 +30,11 @@ export default function AppSidebar() {
         {
             group: 'Principal',
             items: [
-                { 
-                    name: 'Dashboard', 
-                    href: route('dashboard'), 
-                    icon: LayoutDashboard, 
-                    current: url.startsWith('/dashboard') 
-                },
                 {
-                    name: 'Movimientos',
-                    icon: ArrowRightLeft,
-                    current: url.startsWith('/movimientos'),
-                    subItems: [
-                        { name: 'Registrar Nuevo', href: route('movimientos.create') },
-                        { name: 'Historial', href: route('movimientos.index') },
-                    ]
+                    name: 'Dashboard',
+                    href: route('dashboard'),
+                    icon: LayoutDashboard,
+                    current: url.startsWith('/dashboard')
                 },
             ]
         },
@@ -52,7 +44,7 @@ export default function AppSidebar() {
                 {
                     name: 'Piezas',
                     icon: Package,
-                    current: url.startsWith('/piezas'), 
+                    current: url.startsWith('/piezas'),
                     subItems: [
                         { name: 'Catálogo', href: route('piezas.index') },
                         { name: 'Registrar', href: route('piezas.create') },
@@ -65,15 +57,6 @@ export default function AppSidebar() {
                     subItems: [
                         { name: 'Ver Lista', href: route('ubicaciones.index') },
                         { name: 'Crear Zona', href: route('ubicaciones.create') },
-                    ]
-                },
-                {
-                    name: 'Clasificaciones',
-                    icon: Tags,
-                    current: url.startsWith('/clasificaciones'),
-                    subItems: [
-                        { name: 'Categorías', href: route('clasificaciones.index') },
-                        { name: 'Nueva Categoría', href: route('clasificaciones.create') },
                     ]
                 }
             ]
@@ -128,10 +111,10 @@ export default function AppSidebar() {
 
             {/* FOOTER */}
             <div className="p-3 border-t border-slate-800 bg-slate-950">
-                <Link 
-                    href={route('logout')} 
-                    method="post" 
-                    as="button" 
+                <Link
+                    href={route('logout')}
+                    method="post"
+                    as="button"
                     className="flex items-center w-full px-3 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all"
                 >
                     <LogOut className="w-4 h-4 mr-2" />
@@ -144,8 +127,15 @@ export default function AppSidebar() {
 
 function NavItem({ item }: { item: NavItemProps }) {
     const [isOpen, setIsOpen] = useState(item.current);
+    const [prevCurrent, setPrevCurrent] = useState(item.current);
 
-    useEffect(() => { if (item.current) setIsOpen(true); }, [item.current]);
+    // Sincronizar estado si el prop 'current' cambia (ej. navegación)
+    if (item.current !== prevCurrent) {
+        setPrevCurrent(item.current);
+        if (item.current) {
+            setIsOpen(true);
+        }
+    }
 
     const hasSubItems = item.subItems && item.subItems.length > 0;
     const baseClasses = "flex items-center w-full px-3 py-2 text-xs font-medium rounded-md transition-all duration-200 group";
@@ -153,7 +143,7 @@ function NavItem({ item }: { item: NavItemProps }) {
     if (hasSubItems) {
         return (
             <div>
-                <button 
+                <button
                     onClick={() => setIsOpen(!isOpen)}
                     className={`${baseClasses} justify-between ${item.current ? 'text-white bg-slate-800' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
                 >

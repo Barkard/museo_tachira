@@ -2,12 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agent;
 use App\Models\ClassificationCategory;
+use App\Models\CurrentLocation;
+use App\Models\LocationCategory;
+use App\Models\Movement;
+use App\Models\MovementCatalog;
 use App\Models\Piece;
-use App\Models\PieceImage; 
+use App\Models\PieceImage;
+use App\Models\TransactionStatusCatalog;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class PieceController extends Controller
 {
@@ -41,6 +49,10 @@ class PieceController extends Controller
     {
         return Inertia::render('Pieces/Create', [
             'classifications' => ClassificationCategory::all(),
+            'agents' => Agent::all(),
+            'movementTypes' => MovementCatalog::all(),
+            'transactionStatuses' => TransactionStatusCatalog::all(),
+            'locations' => LocationCategory::all(),
         ]);
     }
 
@@ -57,28 +69,62 @@ class PieceController extends Controller
             'author_ethnicity' => 'nullable|string|max:255',
             'realization_date' => 'nullable|date',
             'brief_history' => 'nullable|string',
-
             'is_research_piece' => 'boolean',
             'photograph_reference' => 'nullable|string|max:255',
             'images' => 'nullable|array|max:3',
-            'images.*' => 'image|max:5120', 
+            'images.*' => 'image|max:5120',
+
+            // Campos de movimiento y ubicación inicial
+            'movement_type_id' => 'required|exists:movement_catalogs,id',
+            'agent_id' => 'required|exists:agents,id',
+            'transaction_status_id' => 'required|exists:transaction_status_catalogs,id',
+            'entry_exit_date' => 'required|date',
+            'location_id' => 'required|exists:location_categories,id',
         ]);
 
-        // Crear la pieza
-        $piece = Piece::create($validated);
+        return DB::transaction(function () use ($request, $validated) {
+            // 1. Crear el Movimiento de adquisición primero para obtener el ID
+            $movement = Movement::create([
+                'movement_type_id' => $validated['movement_type_id'],
+                'agent_id' => $validated['agent_id'],
+                'transaction_status_id' => $validated['transaction_status_id'],
+                'user_id' => Auth::id(),
+                'entry_exit_date' => $validated['entry_exit_date'],
+            ]);
 
-        // Procesar para comprimir la imagen pinche patroclo.
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $optimizedImage = $this->optimizeToBase64($image);
-                
-                if ($optimizedImage) {
-                    $piece->images()->create(['path' => $optimizedImage]);
+            // 2. Crear la pieza asociada al movimiento
+            $pieceData = collect($validated)->except([
+                'movement_type_id', 'agent_id', 'transaction_status_id',
+                'entry_exit_date', 'location_id', 'images'
+            ])->toArray();
+
+            $pieceData['movement_id'] = $movement->id;
+            $piece = Piece::create($pieceData);
+
+            // Actualizar el movimiento con el piece_id (si el modelo lo requiere)
+            $movement->update(['piece_id' => $piece->id]);
+
+            // 3. Crear la Ubicación inicial
+            CurrentLocation::create([
+                'piece_id' => $piece->id,
+                'location_id' => $validated['location_id'],
+                'user_id' => Auth::id(),
+                'movement_date' => $validated['entry_exit_date'],
+                'movement_reason' => 'Ubicación inicial al registrar pieza',
+            ]);
+
+            // 4. Procesar imágenes
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $optimizedImage = $this->optimizeToBase64($image);
+                    if ($optimizedImage) {
+                        $piece->images()->create(['path' => $optimizedImage]);
+                    }
                 }
             }
-        }
 
-        return redirect()->route('piezas.index')->with('success', 'Pieza creada exitosamente.');
+            return redirect()->route('piezas.index')->with('success', 'Pieza, movimiento y ubicación registrados exitosamente.');
+        });
     }
 
     /**
@@ -87,7 +133,7 @@ class PieceController extends Controller
     public function edit(Piece $pieza)
     {
         // imágenes existentes
-        $pieza->load('images'); 
+        $pieza->load('images');
 
         return Inertia::render('Pieces/Edit', [
             'piece' => $pieza,
@@ -148,28 +194,28 @@ class PieceController extends Controller
             // 1. Crear una imagen desde el archivo original
             $sourceString = file_get_contents($file);
             $image = imagecreatefromstring($sourceString);
-            
+
             if (!$image) return null;
 
             // 2. Obtener dimensiones originales
             $width = imagesx($image);
             $height = imagesy($image);
-            
-            // 3. Definir ancho máximo 
+
+            // 3. Definir ancho máximo
             $maxWidth = 1000;
 
             // Si la imagen es más grande, se redimensionamos
             if ($width > $maxWidth) {
                 $newWidth = $maxWidth;
                 $newHeight = floor($height * ($maxWidth / $width));
-                
+
                 // Crear lienzo vacío
                 $trueColor = imagecreatetruecolor($newWidth, $newHeight);
-                
+
                 // Mantener transparencia
                 imagealphablending($trueColor, false);
                 imagesavealpha($trueColor, true);
-                
+
                 // Copiar y redimensionar
                 imagecopyresampled($trueColor, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
                 $finalImage = $trueColor;
@@ -184,8 +230,8 @@ class PieceController extends Controller
 
             // 4. Comprimir y Convertir a WebP en memoria (Buffer)
             ob_start();
-            // Calidad del 80% 
-            imagewebp($finalImage, null, 80); 
+            // Calidad del 80%
+            imagewebp($finalImage, null, 80);
             $buffer = ob_get_contents();
             ob_end_clean();
 
