@@ -20,6 +20,11 @@ interface Category {
     name: string;
 }
 
+interface PieceImage {
+    id: number;
+    path: string;
+}
+
 interface Piece {
     id: number;
     piece_name: string;
@@ -37,6 +42,7 @@ interface Piece {
     reference_value?: number;
     is_research_piece: boolean;
     photograph_reference?: string;
+    images?: PieceImage[];
 }
 
 interface Props {
@@ -45,7 +51,8 @@ interface Props {
 }
 
 export default function Edit({ piece, classifications }: Props) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
+        _method: 'PUT',
         piece_name: piece.piece_name || '',
         registration_number: piece.registration_number || '',
         classification_id: piece.classification_id.toString(),
@@ -61,11 +68,12 @@ export default function Edit({ piece, classifications }: Props) {
         reference_value: piece.reference_value || '',
         is_research_piece: Boolean(piece.is_research_piece),
         photograph_reference: piece.photograph_reference || '',
+        images: [] as File[],
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        put(route('piezas.update', piece.id));
+        post(route('piezas.update', piece.id));
     };
 
     return (
@@ -245,6 +253,40 @@ export default function Edit({ piece, classifications }: Props) {
                             <label htmlFor="is_research_piece" className="block text-sm font-medium text-gray-700">
                                 ¿Es pieza de investigación?
                             </label>
+                        </div>
+
+                        {/* SECCIÓN DE IMÁGENES */}
+                        <div className="space-y-6 pt-4">
+                            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Galería de Imágenes</h3>
+                            
+                            {/* Imágenes Existentes */}
+                            {piece.images && piece.images.length > 0 && (
+                                <div className="grid grid-cols-3 gap-4">
+                                    {piece.images.map((img) => (
+                                        <div key={img.id} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200">
+                                            <img src={img.path} alt="Pieza" className="w-full h-full object-cover" />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Subir Nuevas */}
+                            <div className="space-y-3">
+                                <label className="block text-sm font-medium text-gray-700">Añadir Nuevas Imágenes (Máximo 3 totales)</label>
+                                <input
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={(e) => setData('images', e.target.files ? Array.from(e.target.files) : [])}
+                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                />
+                                {errors.images && <p className="text-red-500 text-sm mt-1">{errors.images}</p>}
+                                {data.images.length > 0 && (
+                                    <div className="text-xs text-gray-400">
+                                        {data.images.length} archivo(s) seleccionado(s)
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div className="flex justify-end gap-3 pt-6">
