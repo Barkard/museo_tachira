@@ -3,12 +3,10 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Save, Tags } from 'lucide-react';
 import React from 'react';
 
-
 interface ClassificationForm {
     name: string;
     description: string;
 }
-
 
 interface EditProps {
     classification: {
@@ -50,21 +48,23 @@ export default function Edit({ classification }: EditProps) {
 
                     <form onSubmit={submit} className="p-6 space-y-5">
                         
-                        {/* NOMBRE */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1">
                                 Nombre *
                             </label>
                             <input
                                 type="text"
-                                className={inputClasses}
+                                className={`${inputClasses} ${errors.name ? 'border-red-500 ring-1 ring-red-500 bg-red-50' : ''}`}
                                 value={data.name}
                                 onChange={e => setData('name', e.target.value)}
                             />
-                            {errors.name && <p className="text-red-600 text-xs mt-1 font-medium">{errors.name}</p>}
+                            {errors.name && (
+                                <p className="text-red-600 text-xs mt-1 font-bold italic animate-pulse">
+                                    {errors.name}
+                                </p>
+                            )}
                         </div>
 
-                        {/* DESCRIPCIÓN */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1">
                                 Descripción
@@ -77,7 +77,6 @@ export default function Edit({ classification }: EditProps) {
                             />
                         </div>
 
-                        {/* BOTONES */}
                         <div className="flex justify-end pt-4 border-t border-gray-100 mt-6">
                             <Link 
                                 href={route('clasificaciones.index')}

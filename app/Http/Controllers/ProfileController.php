@@ -37,7 +37,8 @@ class ProfileController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Validamos los campos existentes en la tabla de PostgreSQL
+        // Validamos los campos aplicando restricciones para evitar datos duplicados
+        // (insensible a mayúsculas/minúsculas mediante LOWER)
         $request->validate([
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
@@ -45,16 +46,23 @@ class ProfileController extends Controller
             'email' => [
                 'required',
                 'string',
-                'lowercase',
                 'email',
                 'max:255',
-                Rule::unique('users')->ignore($user->id),
+                function ($attribute, $value, $fail) use ($user) {
+                    // Verificamos si el email ya existe en minúsculas ignorando al usuario actual
+                    $exists = User::whereRaw('LOWER(email) = ?', [strtolower($value)])
+                        ->where('id', '!=', $user->id)
+                        ->exists();
+                    if ($exists) {
+                        $fail('Este correo electrónico ya está registrado.');
+                    }
+                },
             ],
             'password' => ['nullable', 'confirmed', 'min:8'],
         ], [
-            'email.unique' => 'El correo ya pertenece a otra cuenta.',
             'birth_date.required' => 'La fecha de nacimiento es obligatoria.',
             'birth_date.date' => 'Formato de fecha no válido.',
+            'password.confirmed' => 'La confirmación de la contraseña no coincide.',
         ]);
 
         // Mapeo a las columnas reales de la tabla 'users'
@@ -70,6 +78,6 @@ class ProfileController extends Controller
 
         $user->save();
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Perfil actualizado con éxito.');
     }
 }

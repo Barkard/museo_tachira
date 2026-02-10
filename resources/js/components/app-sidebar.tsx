@@ -73,15 +73,6 @@ export default function AppSidebar() {
                         { name: 'Nuevo Agente', href: route('agentes.create') },
                     ]
                 },
-                {
-                    name: 'Estados de Piezas',
-                    icon: Activity,
-                    current: url.startsWith('/estados-piezas'),
-                    subItems: [
-                        { name: 'Directorio', href: route('estados.index') },
-                        { name: 'Nuevo Estado', href: route('estados.create') },
-                    ]
-                }
             ]
         },
         {

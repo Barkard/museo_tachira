@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ClassificationCategory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Validation\Rule;
 
 class ClassificationCategoryController extends Controller
 {
@@ -13,10 +14,10 @@ class ClassificationCategoryController extends Controller
         $query = ClassificationCategory::query();
 
         if ($request->has('search')) {
-            $query->where('name', 'like', "%{$request->search}%");
+            $query->where('name', 'ilike', "%{$request->search}%"); // ilike para búsqueda insensible en Postgres
         }
 
-        $classifications = $query->paginate(10)->withQueryString();
+        $classifications = $query->orderBy('name', 'asc')->paginate(10)->withQueryString();
 
         return Inertia::render('Classifications/Index', [
             'classifications' => $classifications,
@@ -31,14 +32,28 @@ class ClassificationCategoryController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:classification_categories,name',
+        // Validamos manualmente la existencia ignorando mayúsculas/minúsculas
+        $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $exists = ClassificationCategory::whereRaw('LOWER(name) = ?', [strtolower($value)])->exists();
+                    if ($exists) {
+                        $fail('Esta clasificación ya existe.');
+                    }
+                },
+            ],
             'description' => 'nullable|string',
         ]);
 
-        ClassificationCategory::create($validated);
+        ClassificationCategory::create([
+            'name' => $request->name,
+            'description' => $request->description,
+        ]);
 
-        return redirect()->route('clasificaciones.index')->with('success', 'Clasificación creada.');
+        return redirect()->route('clasificaciones.index')->with('success', 'Clasificación creada con éxito.');
     }
 
     public function edit(ClassificationCategory $clasificacione)
@@ -50,14 +65,26 @@ class ClassificationCategoryController extends Controller
 
     public function update(Request $request, ClassificationCategory $clasificacione)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:classification_categories,name,' . $clasificacione->id,
+        $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($clasificacione) {
+                    $exists = ClassificationCategory::whereRaw('LOWER(name) = ?', [strtolower($value)])
+                        ->where('id', '!=', $clasificacione->id)
+                        ->exists();
+                    if ($exists) {
+                        $fail('El nombre ya está registrado en otra categoría.');
+                    }
+                },
+            ],
             'description' => 'nullable|string',
         ]);
 
-        $clasificacione->update($validated);
+        $clasificacione->update($request->only(['name', 'description']));
 
-        return redirect()->route('clasificaciones.index')->with('success', 'Clasificación actualizada.');
+        return redirect()->route('clasificaciones.index')->with('success', 'Clasificación actualizada con éxito.');
     }
 
     public function destroy(ClassificationCategory $clasificacione)

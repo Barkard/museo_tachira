@@ -1,10 +1,10 @@
-
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem, type SharedData } from '@/types';
-import { Head, Link, usePage, router } from '@inertiajs/react'; // Import router instead of Inertia
+import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
+import { type BreadcrumbItem } from '@/types';
+import { Head, Link, router } from '@inertiajs/react';
 import { useState, useCallback } from 'react';
 import { debounce } from 'lodash';
 import { Pencil, Trash2, Plus, Search } from 'lucide-react';
+import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; 
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -63,14 +63,58 @@ export default function Index({ pieces, filters }: Props) {
         }
     };
 
+    // <--- 2. Definición de pasos del Tutorial
+    const piecesSteps: TutorialStep[] = [
+        {
+            element: '#pieces-title',
+            popover: {
+                title: 'Gestión de Colección',
+                description: 'Aquí administrarás todo el inventario de piezas del museo.',
+                side: 'bottom',
+                align: 'start',
+            }
+        },
+        {
+            element: '#create-piece-btn',
+            popover: {
+                title: 'Registrar Nueva Pieza',
+                description: 'Presiona este botón para agregar una nueva obra a la base de datos.',
+                side: 'left',
+                align: 'center',
+            }
+        },
+        {
+            element: '#search-bar',
+            popover: {
+                title: 'Buscador Inteligente',
+                description: 'Filtra rápidamente por nombre de la pieza o número de registro.',
+                side: 'bottom',
+                align: 'start',
+            }
+        },
+        {
+            element: '#pieces-table',
+            popover: {
+                title: 'Listado de Piezas',
+                description: 'Aquí verás el inventario. Usa los botones a la derecha para editar o eliminar registros.',
+                side: 'top',
+                align: 'center',
+            }
+        }
+    ];
+
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppSidebarLayout breadcrumbs={breadcrumbs} header="Piezas">
             <Head title="Piezas" />
+
+            <TutorialGuide tutorialKey="pieces-index-v1" steps={piecesSteps} />
 
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">Inventario de Piezas</h2>
+                    {/* <--- 4. ID Agregado */}
+                    <h2 id="pieces-title" className="text-2xl font-bold text-gray-800">Inventario de Piezas</h2>
                     <Link
+                        id="create-piece-btn" 
                         href={route('piezas.create')}
                         className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
                     >
@@ -81,7 +125,8 @@ export default function Index({ pieces, filters }: Props) {
 
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                     <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center gap-4">
-                        <div className="relative flex-1 max-w-md">
+                        {/* <--- 4. ID Agregado */}
+                        <div id="search-bar" className="relative flex-1 max-w-md">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <input
                                 type="text"
@@ -93,7 +138,8 @@ export default function Index({ pieces, filters }: Props) {
                         </div>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    {/* <--- 4. ID Agregado */}
+                    <div id="pieces-table" className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
                                 <tr>
@@ -165,6 +211,6 @@ export default function Index({ pieces, filters }: Props) {
                     )}
                 </div>
             </div>
-        </AppLayout>
+        </AppSidebarLayout>
     );
 }

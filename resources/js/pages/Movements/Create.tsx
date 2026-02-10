@@ -1,7 +1,7 @@
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Save, ArrowRightLeft, Calendar, User, Info } from 'lucide-react';
-
+import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; // <--- 1. Importación
 
 interface MovementFormData {
     piece_id: string;
@@ -30,9 +30,61 @@ export default function Create({ pieces = [], agents = [], types = [], statuses 
 
     const inputClasses = "w-full rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-white";
 
+    // <--- 2. Definición de pasos del Tutorial
+    const createMovementSteps: TutorialStep[] = [
+        {
+            element: '#create-movement-header',
+            popover: {
+                title: 'Registrar Nuevo Movimiento',
+                description: 'Utiliza este formulario para documentar cualquier cambio de ubicación, préstamo o donación de una pieza.',
+                side: 'bottom',
+                align: 'start',
+            }
+        },
+        {
+            element: '#movement-piece-input',
+            popover: {
+                title: 'Selección de Pieza',
+                description: 'Elige del inventario la pieza que será movida. Puedes buscar por nombre o número de registro.',
+                side: 'right',
+                align: 'center',
+            }
+        },
+        {
+            element: '#movement-type-input',
+            popover: {
+                title: 'Tipo de Operación',
+                description: 'Define qué está ocurriendo: ¿Es una salida a exposición? ¿Un préstamo? ¿Una devolución?',
+                side: 'left',
+                align: 'center',
+            }
+        },
+        {
+            element: '#movement-agent-input',
+            popover: {
+                title: 'Responsable',
+                description: 'Indica qué persona o institución está involucrada en esta transacción (quién recibe o entrega).',
+                side: 'right',
+                align: 'center',
+            }
+        },
+        {
+            element: '#movement-submit-btn',
+            popover: {
+                title: 'Confirmar Registro',
+                description: 'Guarda la transacción para que quede asentada en el historial oficial del museo.',
+                side: 'top',
+                align: 'end',
+            }
+        }
+    ];
+
     return (
         <AppSidebarLayout breadcrumbs={[{ title: 'Movimientos', href: route('movimientos.index') }, { title: 'Nuevo', href: '#' }]} header="Registrar Movimiento">
             <Head title="Nuevo Movimiento" />
+
+            {/* <--- 3. Renderizamos el Tutorial */}
+            <TutorialGuide tutorialKey="movements-create-v1" steps={createMovementSteps} />
             
             <div className="max-w-4xl mx-auto">
                 <Link href={route('movimientos.index')} className="flex items-center text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors">
@@ -41,7 +93,8 @@ export default function Create({ pieces = [], agents = [], types = [], statuses 
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     {/* ENCABEZADO */}
-                    <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/80 flex items-center gap-4">
+                    {/* <--- 4. ID Agregado */}
+                    <div id="create-movement-header" className="px-6 py-5 border-b border-gray-100 bg-gray-50/80 flex items-center gap-4">
                         <div className="p-3 bg-blue-600 text-white rounded-xl shadow-sm">
                             <ArrowRightLeft className="w-6 h-6" />
                         </div>
@@ -60,7 +113,8 @@ export default function Create({ pieces = [], agents = [], types = [], statuses 
                             </h3>
                             
                             <div className="grid md:grid-cols-2 gap-6">
-                                <div>
+                                {/* <--- 4. ID Agregado */}
+                                <div id="movement-piece-input">
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">Pieza Involucrada *</label>
                                     <select
                                         className={inputClasses}
@@ -79,7 +133,8 @@ export default function Create({ pieces = [], agents = [], types = [], statuses 
                                     <p className="text-xs text-gray-400 mt-1">Seleccione la pieza del inventario.</p>
                                 </div>
 
-                                <div>
+                                {/* <--- 4. ID Agregado */}
+                                <div id="movement-type-input">
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">Tipo de Movimiento *</label>
                                     <select
                                         className={inputClasses}
@@ -103,7 +158,8 @@ export default function Create({ pieces = [], agents = [], types = [], statuses 
                             </h3>
 
                             <div className="grid md:grid-cols-2 gap-6">
-                                <div>
+                                {/* <--- 4. ID Agregado */}
+                                <div id="movement-agent-input">
                                     <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                                         <User className="w-4 h-4 text-gray-400" /> Agente / Entidad *
                                     </label>
@@ -156,7 +212,8 @@ export default function Create({ pieces = [], agents = [], types = [], statuses 
                         </div>
 
                         {/* BOTÓN FINAL */}
-                        <div className="md:col-span-2 pt-6 border-t border-gray-100 flex justify-end">
+                        {/* <--- 4. ID Agregado */}
+                        <div id="movement-submit-btn" className="md:col-span-2 pt-6 border-t border-gray-100 flex justify-end">
                             <button 
                                 disabled={processing} 
                                 className="flex items-center bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-200 transition-all active:scale-95"

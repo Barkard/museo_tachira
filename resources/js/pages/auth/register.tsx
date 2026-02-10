@@ -1,193 +1,168 @@
 
+import React from 'react';
+import { Mail, Lock, X, User, Calendar, IdCard } from 'lucide-react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import React, { FormEventHandler } from 'react';
+import { FormEventHandler } from 'react';
+import { Loader2 } from 'lucide-react';
 
 export default function Register() {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        first_name: '',
-        last_name: '',
-        document_id: '',
-        birth_date: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
+  const { data, setData, post, processing, errors, reset } = useForm({
+    first_name: '',
+    last_name: '',
+    document_id: '',
+    birth_date: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+  });
+
+  const submit: FormEventHandler = (e) => {
+    e.preventDefault();
+    post(route('register'), {
+      onFinish: () => reset('password', 'password_confirmation'),
     });
+  };
 
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
+  return (
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-cover bg-center"
+         style={{ backgroundImage: "url('/img/FotoMuseo.jpeg')" }}>
 
-        post(route('register'), {
-            onFinish: () => reset('password', 'password_confirmation'),
-        });
-    };
+      {/* Navbar Simple */}
+      <nav className="absolute top-0 w-full flex justify-between items-center p-8 text-white">
+        <div className="text-2xl font-bold">Museo del Táchira</div>
+      </nav>
 
-    return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-            <Head title="Registrarse" />
+      {/* Tarjeta Glassmorphism */}
+      <div className="relative bg-white/10 backdrop-blur-md border border-white/20 p-10 rounded-2xl shadow-2xl w-[500px] text-white">
+        <Head title="Museo del Táchira" />
 
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
-                <div className="text-center">
-                    <h2 className="mt-6 text-3xl font-bold text-gray-900">
-                        Crear una cuenta
-                    </h2>
-                    <p className="mt-2 text-sm text-gray-600">
-                        ¿Ya tienes una cuenta?{' '}
-                        <Link
-                            href={route('login')}
-                            className="font-medium text-blue-600 hover:text-blue-500"
-                        >
-                            Inicia sesión aquí
-                        </Link>
-                    </p>
-                </div>
+        {/* Botón Cerrar */}
+        <button className="absolute top-4 right-4 text-white hover:scale-110 transition">
+          <X size={24} />
+        </button>
 
-                <form className="mt-8 space-y-6" onSubmit={submit}>
-                    <div className="rounded-md shadow-sm -space-y-px">
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
-                                    Nombre
-                                </label>
-                                <input
-                                    id="first_name"
-                                    name="first_name"
-                                    type="text"
-                                    required
-                                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                    placeholder="Nombre"
-                                    value={data.first_name}
-                                    onChange={(e) => setData('first_name', e.target.value)}
-                                />
-                                {errors.first_name && (
-                                    <p className="mt-2 text-sm text-red-600">{errors.first_name}</p>
-                                )}
-                            </div>
-                            <div>
-                                <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
-                                    Apellido
-                                </label>
-                                <input
-                                    id="last_name"
-                                    name="last_name"
-                                    type="text"
-                                    required
-                                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                    placeholder="Apellido"
-                                    value={data.last_name}
-                                    onChange={(e) => setData('last_name', e.target.value)}
-                                />
-                                {errors.last_name && (
-                                    <p className="mt-2 text-sm text-red-600">{errors.last_name}</p>
-                                )}
-                            </div>
-                        </div>
+        <h2 className="text-3xl font-semibold text-center mb-8">Registrarse</h2>
 
-                        <div className="mb-4">
-                            <label htmlFor="document_id" className="block text-sm font-medium text-gray-700">
-                                Cédula / Documento ID
-                            </label>
-                            <input
-                                id="document_id"
-                                name="document_id"
-                                type="text"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Cédula"
-                                value={data.document_id}
-                                onChange={(e) => setData('document_id', e.target.value)}
-                            />
-                            {errors.document_id && (
-                                <p className="mt-2 text-sm text-red-600">{errors.document_id}</p>
-                            )}
-                        </div>
-
-                        <div className="mb-4">
-                            <label htmlFor="birth_date" className="block text-sm font-medium text-gray-700">
-                                Fecha de Nacimiento
-                            </label>
-                            <input
-                                id="birth_date"
-                                name="birth_date"
-                                type="date"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                value={data.birth_date}
-                                onChange={(e) => setData('birth_date', e.target.value)}
-                            />
-                            {errors.birth_date && (
-                                <p className="mt-2 text-sm text-red-600">{errors.birth_date}</p>
-                            )}
-                        </div>
-
-                        <div className="mb-4">
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                Correo Electrónico
-                            </label>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                autoComplete="email"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Correo Electrónico"
-                                value={data.email}
-                                onChange={(e) => setData('email', e.target.value)}
-                            />
-                            {errors.email && (
-                                <p className="mt-2 text-sm text-red-600">{errors.email}</p>
-                            )}
-                        </div>
-
-                        <div className="mb-4">
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                                Contraseña
-                            </label>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                autoComplete="new-password"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Contraseña"
-                                value={data.password}
-                                onChange={(e) => setData('password', e.target.value)}
-                            />
-                            {errors.password && (
-                                <p className="mt-2 text-sm text-red-600">{errors.password}</p>
-                            )}
-                        </div>
-
-                        <div className="mb-4">
-                            <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">
-                                Confirmar Contraseña
-                            </label>
-                            <input
-                                id="password_confirmation"
-                                name="password_confirmation"
-                                type="password"
-                                autoComplete="new-password"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Confirmar Contraseña"
-                                value={data.password_confirmation}
-                                onChange={(e) => setData('password_confirmation', e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                        >
-                            {processing ? 'Registrando...' : 'Registrarse'}
-                        </button>
-                    </div>
-                </form>
+        <form onSubmit={submit} className="space-y-6">
+          {/* Nombres */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="relative border-b-2 border-white/50 focus-within:border-white transition">
+              <input
+                type="text"
+                placeholder="Nombre"
+                className="w-full bg-transparent border-none outline-none py-2 pr-10 text-white placeholder:text-white/70"
+                value={data.first_name}
+                onChange={(e) => setData('first_name', e.target.value)}
+                required
+              />
+              <User className="absolute right-2 top-2" size={20} />
             </div>
-        </div>
-    );
+            {errors.first_name && <p className="text-xs text-red-300 font-medium col-span-2">{errors.first_name}</p>}
+
+            <div className="relative border-b-2 border-white/50 focus-within:border-white transition">
+              <input
+                type="text"
+                placeholder="Apellido"
+                className="w-full bg-transparent border-none outline-none py-2 pr-10 text-white placeholder:text-white/70"
+                value={data.last_name}
+                onChange={(e) => setData('last_name', e.target.value)}
+                required
+              />
+              <User className="absolute right-2 top-2" size={20} />
+            </div>
+            {errors.last_name && <p className="text-xs text-red-300 font-medium col-span-2">{errors.last_name}</p>}
+          </div>
+
+          {/* Documento ID */}
+          <div className="relative border-b-2 border-white/50 focus-within:border-white transition">
+            <input
+              type="text"
+              placeholder="Cédula / Documento ID"
+              className="w-full bg-transparent border-none outline-none py-2 pr-10 text-white placeholder:text-white/70"
+              value={data.document_id}
+              onChange={(e) => setData('document_id', e.target.value)}
+              required
+            />
+            <IdCard className="absolute right-2 top-2" size={20} />
+          </div>
+          {errors.document_id && <p className="text-xs text-red-300 font-medium">{errors.document_id}</p>}
+
+          {/* Fecha de Nacimiento */}
+          <div className="relative border-b-2 border-white/50 focus-within:border-white transition">
+            <input
+              type="date"
+              className="w-full bg-transparent border-none outline-none py-2 pr-10 text-white placeholder:text-white/70"
+              value={data.birth_date}
+              onChange={(e) => setData('birth_date', e.target.value)}
+              required
+            />
+            <Calendar className="absolute right-2 top-2" size={20} />
+          </div>
+          {errors.birth_date && <p className="text-xs text-red-300 font-medium">{errors.birth_date}</p>}
+
+          {/* Email */}
+          <div className="relative border-b-2 border-white/50 focus-within:border-white transition">
+            <input
+              type="email"
+              placeholder="Correo electrónico"
+              className="w-full bg-transparent border-none outline-none py-2 pr-10 text-white placeholder:text-white/70"
+              value={data.email}
+              onChange={(e) => setData('email', e.target.value)}
+              required
+            />
+            <Mail className="absolute right-2 top-2" size={20} />
+          </div>
+          {errors.email && <p className="text-xs text-red-300 font-medium">{errors.email}</p>}
+
+          {/* Password */}
+          <div className="relative border-b-2 border-white/50 focus-within:border-white transition">
+            <input
+              type="password"
+              placeholder="Contraseña"
+              className="w-full bg-transparent border-none outline-none py-2 pr-10 text-white placeholder:text-white/70"
+              value={data.password}
+              onChange={(e) => setData('password', e.target.value)}
+              required
+            />
+            <Lock className="absolute right-2 top-2" size={20} />
+          </div>
+          {errors.password && <p className="text-xs text-red-300 font-medium">{errors.password}</p>}
+
+          {/* Confirm Password */}
+          <div className="relative border-b-2 border-white/50 focus-within:border-white transition">
+            <input
+              type="password"
+              placeholder="Confirmar Contraseña"
+              className="w-full bg-transparent border-none outline-none py-2 pr-10 text-white placeholder:text-white/70"
+              value={data.password_confirmation}
+              onChange={(e) => setData('password_confirmation', e.target.value)}
+              required
+            />
+            <Lock className="absolute right-2 top-2" size={20} />
+          </div>
+
+          {/* Register Button */}
+          <button
+            type="submit"
+            disabled={processing}
+            className="w-full bg-slate-900 text-white py-2 rounded-md font-semibold hover:bg-black transition disabled:opacity-50"
+          >
+            {processing ? (
+              <>
+                <Loader2 className="inline mr-2 h-4 w-4 animate-spin" />
+                Registrando...
+              </>
+            ) : (
+              'Registrarse'
+            )}
+          </button>
+
+          {/* Login Link */}
+          <p className="text-center text-sm">
+            ¿Ya tienes cuenta? <Link href={route('login')} className="font-bold hover:underline text-white">Inicia sesión</Link>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
 }

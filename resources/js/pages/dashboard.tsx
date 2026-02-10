@@ -4,6 +4,7 @@ import {
     Package, MapPin, Users, ArrowRightLeft, PlusCircle, Search, 
     Clock, TrendingUp, ShieldCheck 
 } from 'lucide-react';
+import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; 
 
 
 interface DashboardProps {
@@ -28,14 +29,66 @@ export default function Dashboard({ stats, recentActivity }: DashboardProps) {
         { title: 'Panel de Control', href: route('dashboard') },
     ];
 
+    // <--- 2. Definición de pasos del Tutorial
+    const dashboardSteps: TutorialStep[] = [
+        {
+            element: '#welcome-banner',
+            popover: {
+                title: 'Bienvenido al Dashboard',
+                description: 'Este es tu panel principal donde verás un resumen general del estado del museo.',
+                side: 'bottom',
+                align: 'start',
+            }
+        },
+        {
+            element: '#stats-cards',
+            popover: {
+                title: 'Estadísticas en Tiempo Real',
+                description: 'Aquí puedes ver rápidamente el total de piezas, ubicaciones, movimientos del día y usuarios registrados.',
+                side: 'bottom',
+                align: 'center',
+            }
+        },
+        {
+            element: '#recent-activity',
+            popover: {
+                title: 'Actividad Reciente',
+                description: 'Consulta los últimos movimientos realizados en el sistema (entradas, salidas, registros) para mantener el control.',
+                side: 'top',
+                align: 'start',
+            }
+        },
+        {
+            element: '#quick-actions',
+            popover: {
+                title: 'Accesos Directos',
+                description: 'Utiliza estos botones para realizar las tareas más frecuentes rápidamente, como registrar una nueva pieza.',
+                side: 'left',
+                align: 'start',
+            }
+        },
+        {
+            element: '#sidebar-menu',
+            popover: {
+                title: 'Navegación Principal',
+                description: 'Usa este menú para acceder a los módulos de Piezas, Ubicaciones, Clasificaciones y Agentes.',
+                side: 'right',
+                align: 'start',
+            }
+        }
+    ];
+
     return (
         <AppSidebarLayout breadcrumbs={breadcrumbs} header="Dashboard">
             <Head title="Panel de Control" />
 
+            <TutorialGuide tutorialKey="dashboard-v1" steps={dashboardSteps} />
+
             <div className="space-y-6">
                 
                 {/* BANNER DE BIENVENIDA */}
-                <div className="relative overflow-hidden bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+                {/* <--- 4. ID Agregado */}
+                <div id="welcome-banner" className="relative overflow-hidden bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="relative z-10">
                         <h2 className="text-xl font-bold text-gray-800">¡Bienvenido al Museo! 👋</h2>
                         <p className="text-gray-500 text-sm mt-1">Resumen en tiempo real de la colección.</p>
@@ -47,7 +100,8 @@ export default function Dashboard({ stats, recentActivity }: DashboardProps) {
                 </div>
 
                 {/* TARJETAS DE ESTADÍSTICAS (Datos Reales) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* <--- 4. ID Agregado */}
+                <div id="stats-cards" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <StatCard 
                         title="Piezas Totales" 
                         value={stats.pieces} 
@@ -77,7 +131,8 @@ export default function Dashboard({ stats, recentActivity }: DashboardProps) {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     
                     {/* TABLA DE ACTIVIDAD RECIENTE (Dinámica) */}
-                    <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col min-h-[300px]">
+                    {/* <--- 4. ID Agregado */}
+                    <div id="recent-activity" className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col min-h-[300px]">
                         <div className="p-5 border-b border-gray-50 flex justify-between items-center">
                             <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
                                 <Clock className="w-4 h-4 text-gray-400" />
@@ -126,7 +181,8 @@ export default function Dashboard({ stats, recentActivity }: DashboardProps) {
                     </div>
 
                     {/* ACCIONES RÁPIDAS */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 h-full">
+                    {/* <--- 4. ID Agregado */}
+                    <div id="quick-actions" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 h-full">
                         <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2 text-sm">
                             <TrendingUp className="w-4 h-4 text-gray-400" />
                             Acciones Rápidas
