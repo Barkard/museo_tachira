@@ -35,8 +35,18 @@ class MovementCatalogController extends Controller
             'movement_name' => 'required|string|max:255|unique:movement_catalogs,movement_name',
         ]);
 
-        MovementCatalog::create($validated);
+        $movementType = MovementCatalog::create($validated);
 
+        // If AJAX request (from modal), return JSON
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'data' => $movementType,
+                'message' => 'Tipo de movimiento creado exitosamente.'
+            ], 201);
+        }
+
+        // Otherwise, redirect as usual
         return redirect()->route('tipos-movimiento.index')->with('success', 'Tipo de movimiento creado.');
     }
 

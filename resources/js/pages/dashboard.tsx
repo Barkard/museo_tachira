@@ -4,6 +4,8 @@ import {
     Package, MapPin, Users, ArrowRightLeft, PlusCircle, Search, 
     Clock, TrendingUp, ShieldCheck 
 } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
+import { SharedData } from '@/types';
 import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; 
 
 
@@ -24,6 +26,8 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ stats, recentActivity }: DashboardProps) {
+    const { auth } = usePage<SharedData>().props;
+    const isEmpleado = auth.user.role?.role_name === 'Empleado';
     
     const breadcrumbs = [
         { title: 'Panel de Control', href: route('dashboard') },
@@ -132,7 +136,7 @@ export default function Dashboard({ stats, recentActivity }: DashboardProps) {
                     
                     {/* TABLA DE ACTIVIDAD RECIENTE (Dinámica) */}
                     {/* <--- 4. ID Agregado */}
-                    <div id="recent-activity" className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col min-h-[300px]">
+                    <div id="recent-activity" className={`${isEmpleado ? 'lg:col-span-3' : 'lg:col-span-2'} bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col min-h-[300px]`}>
                         <div className="p-5 border-b border-gray-50 flex justify-between items-center">
                             <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
                                 <Clock className="w-4 h-4 text-gray-400" />
@@ -182,32 +186,34 @@ export default function Dashboard({ stats, recentActivity }: DashboardProps) {
 
                     {/* ACCIONES RÁPIDAS */}
                     {/* <--- 4. ID Agregado */}
-                    <div id="quick-actions" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 h-full">
-                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2 text-sm">
-                            <TrendingUp className="w-4 h-4 text-gray-400" />
-                            Acciones Rápidas
-                        </h3>
-                        <div className="space-y-3">
-                            <QuickAction 
-                                href={route('piezas.create')} 
-                                label="Registrar Nueva Pieza" 
-                                icon={<PlusCircle className="w-4 h-4" />} 
-                                color="blue"
-                            />
-                            <QuickAction 
-                                href={route('ubicaciones.create')} 
-                                label="Crear Nueva Ubicación" 
-                                icon={<MapPin className="w-4 h-4" />} 
-                                color="emerald"
-                            />
-                            <QuickAction 
-                                href={route('piezas.index')} 
-                                label="Buscar en el Catálogo" 
-                                icon={<Search className="w-4 h-4" />} 
-                                color="purple"
-                            />
+                    {!isEmpleado && (
+                        <div id="quick-actions" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 h-full">
+                            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2 text-sm">
+                                <TrendingUp className="w-4 h-4 text-gray-400" />
+                                Acciones Rápidas
+                            </h3>
+                            <div className="space-y-3">
+                                <QuickAction 
+                                    href={route('piezas.create')} 
+                                    label="Registrar Nueva Pieza" 
+                                    icon={<PlusCircle className="w-4 h-4" />} 
+                                    color="blue"
+                                />
+                                <QuickAction 
+                                    href={route('ubicaciones.create')} 
+                                    label="Crear Nueva Ubicación" 
+                                    icon={<MapPin className="w-4 h-4" />} 
+                                    color="emerald"
+                                />
+                                <QuickAction 
+                                    href={route('piezas.index')} 
+                                    label="Buscar en el Catálogo" 
+                                    icon={<Search className="w-4 h-4" />} 
+                                    color="purple"
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </AppSidebarLayout>
@@ -215,7 +221,7 @@ export default function Dashboard({ stats, recentActivity }: DashboardProps) {
 }
 
 
-function StatCard({ title, value, icon, color }: any) {
+function StatCard({ title, value, icon, color }: { title: string; value: number; icon: React.ReactNode; color: string }) {
     const colors: Record<string, string> = {
         blue: 'bg-blue-50 text-blue-600',
         emerald: 'bg-emerald-50 text-emerald-600',
@@ -236,7 +242,7 @@ function StatCard({ title, value, icon, color }: any) {
     );
 }
 
-function QuickAction({ label, icon, color, href }: any) {
+function QuickAction({ label, icon, color, href }: { label: string; icon: React.ReactNode; color: string; href: string }) {
     const colors: Record<string, string> = {
         blue: 'text-blue-600 bg-blue-50 group-hover:bg-blue-100',
         emerald: 'text-emerald-600 bg-emerald-50 group-hover:bg-emerald-100',

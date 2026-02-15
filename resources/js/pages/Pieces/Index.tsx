@@ -1,7 +1,7 @@
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
-import { useState, useCallback } from 'react';
+import { type BreadcrumbItem, SharedData, PaginationLink } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useState, useMemo } from 'react';
 import { debounce } from 'lodash';
 import { Pencil, Trash2, Plus, Search } from 'lucide-react';
 import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; 
@@ -27,7 +27,7 @@ interface Piece {
 interface Props {
     pieces: {
         data: Piece[];
-        links: any[];
+        links: PaginationLink[];
         current_page: number;
         last_page: number;
         total: number;
@@ -41,14 +41,15 @@ export default function Index({ pieces, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
 
     // Debounce search to avoid too many requests
-    const handleSearch = useCallback(
-        debounce((query: string) => {
-            router.get(
-                route('piezas.index'),
-                { search: query },
-                { preserveState: true, replace: true }
-            );
-        }, 300),
+    const handleSearch = useMemo(
+        () =>
+            debounce((query: string) => {
+                router.get(
+                    route('piezas.index'),
+                    { search: query },
+                    { preserveState: true, replace: true }
+                );
+            }, 300),
         []
     );
 
@@ -103,6 +104,10 @@ export default function Index({ pieces, filters }: Props) {
         }
     ];
 
+    const { props } = usePage<SharedData>();
+    const userRole = props.auth.user?.role?.role_name;
+    const isEmpleado = userRole === 'Empleado';
+
     return (
         <AppSidebarLayout breadcrumbs={breadcrumbs} header="Piezas">
             <Head title="Piezas" />
@@ -113,14 +118,16 @@ export default function Index({ pieces, filters }: Props) {
                 <div className="flex justify-between items-center mb-6">
                     {/* <--- 4. ID Agregado */}
                     <h2 id="pieces-title" className="text-2xl font-bold text-gray-800">Inventario de Piezas</h2>
-                    <Link
-                        id="create-piece-btn" 
-                        href={route('piezas.create')}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Nueva Pieza
-                    </Link>
+                    {!isEmpleado && (
+                        <Link
+                            id="create-piece-btn" 
+                            href={route('piezas.create')}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Nueva Pieza
+                        </Link>
+                    )}
                 </div>
 
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -146,7 +153,7 @@ export default function Index({ pieces, filters }: Props) {
                                     <th className="px-6 py-3 font-semibold">No. Registro</th>
                                     <th className="px-6 py-3 font-semibold">Nombre</th>
                                     <th className="px-6 py-3 font-semibold">Clasificación</th>
-                                    <th className="px-6 py-3 font-semibold text-right">Acciones</th>
+                                    {!isEmpleado && <th className="px-6 py-3 font-semibold text-right">Acciones</th>}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
@@ -162,25 +169,27 @@ export default function Index({ pieces, filters }: Props) {
                                             <td className="px-6 py-4 text-gray-600">
                                                 {piece.classification?.name || 'N/A'}
                                             </td>
-                                            <td className="px-6 py-4 text-right flex justify-end gap-2">
-                                                <Link
-                                                    href={route('piezas.edit', piece.id)}
-                                                    className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50"
-                                                >
-                                                    <Pencil className="w-4 h-4" />
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleDelete(piece.id)}
-                                                    className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </td>
+                                            {!isEmpleado && (
+                                                <td className="px-6 py-4 text-right flex justify-end gap-2">
+                                                    <Link
+                                                        href={route('piezas.edit', piece.id)}
+                                                        className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50"
+                                                    >
+                                                        <Pencil className="w-4 h-4" />
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => handleDelete(piece.id)}
+                                                        className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </td>
+                                            )}
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                                        <td colSpan={isEmpleado ? 3 : 4} className="px-6 py-8 text-center text-gray-500">
                                             No se encontraron piezas.
                                         </td>
                                     </tr>

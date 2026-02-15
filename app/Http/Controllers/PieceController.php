@@ -80,6 +80,12 @@ class PieceController extends Controller
             'transaction_status_id' => 'required|exists:transaction_status_catalogs,id',
             'entry_exit_date' => 'required|date',
             'location_id' => 'required|exists:location_categories,id',
+
+            // Dimensiones y valor
+            'height' => 'nullable|numeric|min:0',
+            'width' => 'nullable|numeric|min:0',
+            'depth' => 'nullable|numeric|min:0',
+            'reference_value' => 'nullable|numeric|min:0',
         ]);
 
         return DB::transaction(function () use ($request, $validated) {
@@ -92,11 +98,19 @@ class PieceController extends Controller
                 'entry_exit_date' => $validated['entry_exit_date'],
             ]);
 
-            // 2. Crear la pieza asociada al movimiento
+            // 2. Calcular dimensiones y construir datos de la pieza
+            $dims = [];
+            if (!empty($validated['height'])) $dims[] = "Alto: {$validated['height']} cm";
+            if (!empty($validated['width'])) $dims[] = "Ancho: {$validated['width']} cm";
+            if (!empty($validated['depth'])) $dims[] = "Profundidad: {$validated['depth']} cm";
+
             $pieceData = collect($validated)->except([
                 'movement_type_id', 'agent_id', 'transaction_status_id',
-                'entry_exit_date', 'location_id', 'images'
+                'entry_exit_date', 'location_id', 'images',
+                'height', 'width', 'depth'
             ])->toArray();
+
+            $pieceData['dimensions'] = implode(', ', $dims);
 
             $pieceData['movement_id'] = $movement->id;
             $piece = Piece::create($pieceData);
@@ -183,6 +197,26 @@ class PieceController extends Controller
     {
         $pieza->delete();
         return redirect()->route('piezas.index')->with('success', 'Pieza eliminada exitosamente.');
+    }
+
+    public function checkUniqueness(Request $request)
+    {
+        $field = $request->input('field', 'registration_number');
+        $value = $request->input('value');
+        $excludeId = $request->input('exclude_id');
+
+        $query = Piece::where($field, $value);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        $exists = $query->exists();
+
+        return response()->json([
+            'valid' => !$exists,
+            'error' => $exists ? 'Este número de registro ya está en uso.' : null,
+        ]);
     }
 
     /**

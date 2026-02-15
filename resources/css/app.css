@@ -133,16 +133,14 @@
     --sidebar-ring: oklch(0.439 0 0);
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
 
 
 @layer utilities {
     .scrollbar-hide::-webkit-scrollbar {
         display: none;
     }
-    
+
     .custom-scrollbar::-webkit-scrollbar {
         width: 5px;
     }

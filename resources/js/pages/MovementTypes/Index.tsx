@@ -1,7 +1,7 @@
 
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { type BreadcrumbItem, SharedData, PaginationLink } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 import { debounce } from 'lodash';
 import { Pencil, Trash2, Plus, Search } from 'lucide-react';
@@ -18,7 +18,7 @@ interface MovementType {
 interface Props {
     types: {
         data: MovementType[];
-        links: any[];
+        links: PaginationLink[];
     };
     filters: {
         search?: string;
@@ -51,15 +51,21 @@ export default function Index({ types, filters }: Props) {
         }
     };
 
+    const { props } = usePage<SharedData>();
+    const userRole = props.auth.user?.role?.role_name;
+    const isEmpleado = userRole === 'Empleado';
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Tipos de Movimiento" />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-gray-800">Tipos de Movimiento</h2>
-                    <Link href={route('tipos-movimiento.create')} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2">
-                        <Plus className="w-4 h-4" /> Nuevo
-                    </Link>
+                    {!isEmpleado && (
+                        <Link href={route('tipos-movimiento.create')} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2">
+                            <Plus className="w-4 h-4" /> Nuevo
+                        </Link>
+                    )}
                 </div>
 
                 <div className="bg-white rounded-lg shadow border-gray-200 overflow-hidden">
@@ -79,17 +85,19 @@ export default function Index({ types, filters }: Props) {
                         <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
                             <tr>
                                 <th className="px-6 py-3">Nombre del Movimiento</th>
-                                <th className="px-6 py-3 text-right">Acciones</th>
+                                {!isEmpleado && <th className="px-6 py-3 text-right">Acciones</th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                             {types.data.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 font-medium">{item.movement_name}</td>
-                                    <td className="px-6 py-4 text-right flex justify-end gap-2">
-                                        <Link href={route('tipos-movimiento.edit', item.id)} className="text-blue-600"><Pencil className="w-4 h-4" /></Link>
-                                        <button onClick={() => handleDelete(item.id)} className="text-red-600"><Trash2 className="w-4 h-4" /></button>
-                                    </td>
+                                    {!isEmpleado && (
+                                        <td className="px-6 py-4 text-right flex justify-end gap-2">
+                                            <Link href={route('tipos-movimiento.edit', item.id)} className="text-blue-600"><Pencil className="w-4 h-4" /></Link>
+                                            <button onClick={() => handleDelete(item.id)} className="text-red-600"><Trash2 className="w-4 h-4" /></button>
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>

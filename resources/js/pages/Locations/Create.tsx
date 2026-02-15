@@ -6,7 +6,7 @@ import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; // <--
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
-        name: '',
+        location_name: '',
         description: '',
     });
 
@@ -84,24 +84,24 @@ export default function Create() {
                         
                         {/* <--- 4. ID Agregado */}
                         <div id="location-name-input">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                                 <MapPin className="w-4 h-4 text-gray-400" /> Nombre del Espacio *
                             </label>
                             <input
                                 type="text"
                                 className="w-full rounded-lg border border-gray-300 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
                                 placeholder="Ej: Sala 1, Vitrina B..."
-                                value={data.name}
-                                onChange={e => setData('name', e.target.value)}
+                                value={data.location_name}
+                                onChange={e => setData('location_name', e.target.value)}
                                 autoFocus
                             />
-                            {errors.name && <p className="text-red-500 text-xs mt-1 font-medium">{errors.name}</p>}
+                            {errors.location_name && <p className="text-red-500 text-xs mt-1 font-medium">{errors.location_name}</p>}
                             <p className="text-xs text-gray-400 mt-1">El nombre debe ser único para evitar confusiones.</p>
                         </div>
 
                         {/* <--- 4. ID Agregado */}
                         <div id="location-description-input">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                                 <AlignLeft className="w-4 h-4 text-gray-400" /> Descripción
                             </label>
                             <textarea

@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Agent extends Model
 {
     protected $fillable = [
+        'unique_id',
         'name_legal_entity',
-        'agent_type', 
+        'agent_type',
         'representative_name',
         'email',
         'phone',

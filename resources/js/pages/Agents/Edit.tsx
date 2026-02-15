@@ -17,6 +17,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface Agent {
     id: number;
+    unique_id: number | null;
     name_legal_entity: string;
     agent_type: string;
 }
@@ -27,6 +28,7 @@ interface Props {
 
 export default function Edit({ agent }: Props) {
     const { data, setData, put, processing, errors } = useForm({
+        unique_id: agent.unique_id?.toString() || '',
         name_legal_entity: agent.name_legal_entity || '',
         agent_type: agent.agent_type || '',
     });
@@ -45,6 +47,20 @@ export default function Edit({ agent }: Props) {
                     <h2 className="text-2xl font-bold text-gray-800 mb-6">Editar Agente</h2>
 
                     <form onSubmit={submit} className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Cédula / ID Único *
+                            </label>
+                            <input
+                                type="number"
+                                required
+                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                value={data.unique_id}
+                                onChange={(e) => setData('unique_id', e.target.value)}
+                            />
+                            {errors.unique_id && <p className="text-red-500 text-sm mt-1">{errors.unique_id}</p>}
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Nombre o Entidad Legal *

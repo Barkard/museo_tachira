@@ -3,9 +3,22 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import React from 'react';
 
-export default function Edit({ location }: any) {
-    const { data, setData, put, processing, errors } = useForm({
-        name: location.name,
+interface Location {
+    id: number;
+    location_name: string;
+    description: string | null;
+}
+
+interface EditProps {
+    location: Location;
+}
+
+export default function Edit({ location }: EditProps) {
+    const { data, setData, put, processing, errors } = useForm<{
+        location_name: string;
+        description: string;
+    }>({
+        location_name: location.location_name,
         description: location.description || '',
     });
 
@@ -26,10 +39,10 @@ export default function Edit({ location }: any) {
                             <input
                                 type="text"
                                 className="w-full border rounded p-2"
-                                value={data.name}
-                                onChange={e => setData('name', e.target.value)}
+                                value={data.location_name}
+                                onChange={e => setData('location_name', e.target.value)}
                             />
-                            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+                            {errors.location_name && <p className="text-red-500 text-sm">{errors.location_name}</p>}
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Descripción</label>

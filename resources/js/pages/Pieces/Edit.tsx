@@ -2,7 +2,8 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import React, { FormEventHandler } from 'react';
+import React, { FormEventHandler, useState } from 'react';
+import axios from 'axios';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -47,8 +48,10 @@ interface Props {
     classifications: Category[];
 }
 
+type PieceEditFormFields = 'registration_number' | 'piece_name' | 'classification_id' | 'description' | 'author_ethnicity' | 'height' | 'width' | 'depth' | 'realization_date' | 'brief_history' | 'is_research_piece' | 'photograph_reference';
+
 export default function Edit({ piece, classifications }: Props) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, setError, clearErrors } = useForm({
         piece_name: piece.piece_name || '',
         registration_number: piece.registration_number || '',
         classification_id: piece.classification_id.toString(),
@@ -68,6 +71,64 @@ export default function Edit({ piece, classifications }: Props) {
         is_research_piece: Boolean(piece.is_research_piece),
         photograph_reference: piece.photograph_reference || '',
     });
+
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [checking, setChecking] = useState<Record<string, boolean>>({});
+
+    const validateField = async (name: PieceEditFormFields, value: string) => {
+        // Validación de requeridos
+        const requiredFields = [
+            'registration_number', 
+            'piece_name', 
+            'classification_id'
+        ];
+
+        if (requiredFields.includes(name)) {
+            if (!value || value.toString().trim() === '') {
+                setError(name as keyof typeof data, 'Este campo es requerido');
+                return;
+            } else {
+                clearErrors(name as keyof typeof data);
+            }
+        }
+
+        // Validación de unicidad para registration_number
+        if (name === 'registration_number' && value.trim() !== '' && value !== piece.registration_number) {
+            setChecking(prev => ({ ...prev, [name]: true }));
+            try {
+                const response = await axios.get(route('piezas.check-uniqueness'), {
+                    params: { field: name, value, exclude_id: piece.id }
+                });
+
+                if (response.data && !response.data.valid) {
+                    setError(name as keyof typeof data, response.data.error);
+                } else {
+                    clearErrors(name as keyof typeof data);
+                }
+            } catch (e) {
+                console.error('Error validating field:', e);
+            } finally {
+                setChecking(prev => ({ ...prev, [name]: false }));
+            }
+        }
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setTouched(prev => ({ ...prev, [name]: true }));
+        validateField(name as PieceEditFormFields, value);
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value, type } = e.target;
+        const finalValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+        
+        setData(name as PieceEditFormFields, finalValue as any);
+        
+        if (touched[name]) {
+            validateField(name as PieceEditFormFields, value);
+        }
+    };
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -89,37 +150,51 @@ export default function Edit({ piece, classifications }: Props) {
                                     Nombre de la Pieza *
                                 </label>
                                 <input
-                                    type="text"
-                                    required
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                    name="piece_name"
+                                    className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none ${errors.piece_name ? 'border-red-500' : 'border-gray-300'}`}
                                     value={data.piece_name}
-                                    onChange={(e) => setData('piece_name', e.target.value)}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
                                 />
+                                {errors.piece_name && <p className="text-red-500 text-sm mt-1">{errors.piece_name}</p>}
+
                                 {/* Bloque de dimensiones */}
                                 <div className="grid grid-cols-3 gap-2 mt-2">
-                                    <input 
+                                    <input
                                         type="number" step="0.01" min="0" placeholder="Alto"
+                                        name="height"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none text-sm focus:ring-2 focus:ring-blue-500"
-                                        value={data.height} onChange={(e) => setData('height', e.target.value)}
+                                        value={data.height} onChange={handleChange}
                                     />
-                                    <input 
+                                    <input
                                         type="number" step="0.01" min="0" placeholder="Ancho"
+                                        name="width"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none text-sm focus:ring-2 focus:ring-blue-500"
-                                        value={data.width} onChange={(e) => setData('width', e.target.value)}
+                                        value={data.width} onChange={handleChange}
                                     />
-                                    <input 
+                                    <input
                                         type="number" step="0.01" min="0" placeholder="Prof."
+                                        name="depth"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none text-sm focus:ring-2 focus:ring-blue-500"
-                                        value={data.depth} onChange={(e) => setData('depth', e.target.value)}
+                                        value={data.depth} onChange={handleChange}
                                     />
                                 </div>
-                                <input
-                                    type="text"
-                                    required
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none mt-2"
-                                    value={data.registration_number}
-                                    onChange={(e) => setData('registration_number', e.target.value)}
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        required
+                                        name="registration_number"
+                                        className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none mt-2 font-bold ${errors.registration_number ? 'border-red-500' : 'border-gray-300'}`}
+                                        value={data.registration_number}
+                                        onChange={handleChange}
+                                        onBlur={handleBlur}
+                                    />
+                                    {checking.registration_number && (
+                                        <div className="absolute right-3 top-4">
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                        </div>
+                                    )}
+                                </div>
                                 {errors.registration_number && <p className="text-red-500 text-sm mt-1">{errors.registration_number}</p>}
                             </div>
                         </div>
@@ -130,9 +205,11 @@ export default function Edit({ piece, classifications }: Props) {
                             </label>
                             <select
                                 required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                name="classification_id"
+                                className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white ${errors.classification_id ? 'border-red-500' : 'border-gray-300'}`}
                                 value={data.classification_id}
-                                onChange={(e) => setData('classification_id', e.target.value)}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
                             >
                                 <option value="">Seleccione una clasificación</option>
                                 {classifications.map((c) => (
@@ -149,10 +226,12 @@ export default function Edit({ piece, classifications }: Props) {
                                 Descripción
                             </label>
                             <textarea
+                                name="description"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                 rows={3}
                                 value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
                             />
                             {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
                         </div>
@@ -164,49 +243,39 @@ export default function Edit({ piece, classifications }: Props) {
                                 </label>
                                 <input
                                     type="text"
+                                    name="author_ethnicity"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                     value={data.author_ethnicity}
-                                    onChange={(e) => setData('author_ethnicity', e.target.value)}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
                                 />
                                 {errors.author_ethnicity && <p className="text-red-500 text-sm mt-1">{errors.author_ethnicity}</p>}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Dimensiones (cm)
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Dimensiones (cm)</label>
                                 <div className="grid grid-cols-3 gap-2">
-                                    <div>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="Alto"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-                                            value={data.dimensions.height}
-                                            onChange={(e) => setData('dimensions', { ...data.dimensions, height: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="Ancho"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-                                            value={data.dimensions.width}
-                                            onChange={(e) => setData('dimensions', { ...data.dimensions, width: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="Grosor"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-                                            value={data.dimensions.thickness}
-                                            onChange={(e) => setData('dimensions', { ...data.dimensions, thickness: e.target.value })}
-                                        />
-                                    </div>
+                                    <input
+                                        type="number" step="0.01" placeholder="Alto"
+                                        name="dimensions.height"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                        value={data.dimensions?.height}
+                                        onChange={handleChange}
+                                    />
+                                    <input
+                                        type="number" step="0.01" placeholder="Ancho"
+                                        name="dimensions.width"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                        value={data.dimensions?.width}
+                                        onChange={handleChange}
+                                    />
+                                    <input
+                                        type="number" step="0.01" placeholder="Grosor"
+                                        name="dimensions.thickness"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                        value={data.dimensions?.thickness}
+                                        onChange={handleChange}
+                                    />
                                 </div>
-                                {errors.dimensions && <p className="text-red-500 text-sm mt-1">{errors.dimensions}</p>}
                             </div>
                         </div>
 
@@ -217,13 +286,15 @@ export default function Edit({ piece, classifications }: Props) {
                                 </label>
                                 <input
                                     type="date"
+                                    name="realization_date"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                     value={data.realization_date}
-                                    onChange={(e) => setData('realization_date', e.target.value)}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
                                 />
                                 {errors.realization_date && <p className="text-red-500 text-sm mt-1">{errors.realization_date}</p>}
                             </div>
-                             <div>
+                            <div>
                             </div>
                         </div>
 
@@ -232,10 +303,12 @@ export default function Edit({ piece, classifications }: Props) {
                                 Breve Historia
                             </label>
                             <textarea
+                                name="brief_history"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                 rows={2}
                                 value={data.brief_history}
-                                onChange={(e) => setData('brief_history', e.target.value)}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
                             />
                              {errors.brief_history && <p className="text-red-500 text-sm mt-1">{errors.brief_history}</p>}
                         </div>
@@ -244,9 +317,10 @@ export default function Edit({ piece, classifications }: Props) {
                             <input
                                 type="checkbox"
                                 id="is_research_piece"
+                                name="is_research_piece"
                                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                 checked={data.is_research_piece}
-                                onChange={(e) => setData('is_research_piece', e.target.checked)}
+                                onChange={handleChange}
                             />
                             <label htmlFor="is_research_piece" className="block text-sm font-medium text-gray-700">
                                 ¿Es pieza de investigación?

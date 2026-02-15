@@ -1,5 +1,6 @@
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { SharedData, PaginationLink } from '@/types';
 import { useState, ChangeEvent } from 'react';
 import { Pencil, Trash2, Plus, Search, User, Phone, Mail, Building2 } from 'lucide-react';
 import { debounce } from 'lodash';
@@ -7,6 +8,7 @@ import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; // <--
 
 interface Agent {
     id: number;
+    unique_id: number | null;
     name_legal_entity: string;
     representative_name: string | null;
     email_address: string | null;
@@ -15,7 +17,7 @@ interface Agent {
 
 interface PaginatedAgents {
     data: Agent[];
-    links: any[];
+    links: PaginationLink[];
 }
 
 interface IndexProps {
@@ -83,6 +85,10 @@ export default function Index({ agents, filters }: IndexProps) {
         }
     ];
 
+    const { props } = usePage<SharedData>();
+    const userRole = props.auth.user?.role?.role_name;
+    const isEmpleado = userRole === 'Empleado';
+
     return (
         <AppSidebarLayout breadcrumbs={breadcrumbs} header="Directorio de Agentes">
             <Head title="Agentes y Entidades" />
@@ -108,15 +114,17 @@ export default function Index({ agents, filters }: IndexProps) {
                         />
                     </div>
 
-                    {/* <--- 4. ID Agregado */}
-                    <Link
-                        id="create-agent-btn"
-                        href={route('agentes.create')}
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Registrar Agente
-                    </Link>
+                    {!isEmpleado && (
+                        /* <--- 4. ID Agregado */
+                        <Link
+                            id="create-agent-btn"
+                            href={route('agentes.create')}
+                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Registrar Agente
+                        </Link>
+                    )}
                 </div>
 
                 {/* GRID DE TARJETAS */}
@@ -139,20 +147,26 @@ export default function Index({ agents, filters }: IndexProps) {
                                             <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                                                 <Building2 className="w-6 h-6" />
                                             </div>
-                                            <div className="flex gap-2">
-                                                <Link href={route('agentes.edit', agent.id)} className="text-gray-400 hover:text-blue-600 transition-colors">
-                                                    <Pencil className="w-4 h-4" />
-                                                </Link>
-                                                <button onClick={() => handleDelete(agent.id)} className="text-gray-400 hover:text-red-600 transition-colors">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
+                                            {!isEmpleado && (
+                                                <div className="flex gap-2">
+                                                    <Link href={route('agentes.edit', agent.id)} className="text-gray-400 hover:text-blue-600 transition-colors">
+                                                        <Pencil className="w-4 h-4" />
+                                                    </Link>
+                                                    <button onClick={() => handleDelete(agent.id)} className="text-gray-400 hover:text-red-600 transition-colors">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
-                                        
+
                                         <h3 className="font-bold text-gray-900 text-lg mb-1 truncate" title={agent.name_legal_entity}>
                                             {agent.name_legal_entity}
                                         </h3>
-                                        
+
+                                        <p className="text-xs font-mono text-gray-400 mb-2">
+                                            ID: {agent.unique_id || 'N/A'}
+                                        </p>
+
                                         {agent.representative_name && (
                                             <p className="text-sm text-gray-500 flex items-center gap-2 mb-4">
                                                 <User className="w-3 h-3" />

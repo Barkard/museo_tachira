@@ -1,14 +1,41 @@
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import React, { FormEventHandler, useState } from 'react';
+import axios from 'axios';
 import { X, Image as ImageIcon, ZoomIn, Plus } from 'lucide-react';
-import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide';
+import ClassificationModal from '@/components/ClassificationModal';
+import LocationModal from '@/components/LocationModal';
+import MovementTypeModal from '@/components/MovementTypeModal';
+import AgentModal from '@/components/AgentModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Piezas', href: '/piezas' },
     { title: 'Nueva Pieza', href: '/piezas/create' },
 ];
+
+interface PieceFormData {
+    registration_number: string;
+    piece_name: string;
+    classification_id: string;
+    description: string;
+    author_ethnicity: string;
+    height: string;
+    width: string;
+    depth: string;
+    realization_date: string;
+    brief_history: string;
+    is_research_piece: boolean;
+    photograph_reference: string;
+    images: File[];
+    movement_type_id: string;
+    agent_id: string;
+    transaction_status_id: string;
+    entry_exit_date: string;
+    location_id: string;
+}
+
+type PieceCreateFormFields = keyof PieceFormData;
 
 interface Category {
     id: number;
@@ -39,8 +66,14 @@ export default function Create({
     transactionStatuses,
     locations
 }: Props) {
+    // Auto-select "Complete" status if available
+    const defaultStatus = transactionStatuses.find(s =>
+        (s.status || s.name || '').toLowerCase().includes('complet') ||
+        (s.status || s.name || '').toLowerCase().includes('final')
+    ) || (transactionStatuses.length > 0 ? transactionStatuses[0] : null);
+
     // 1. Configuración del formulario
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm<PieceFormData>({
         registration_number: '',
         piece_name: '',
         classification_id: '',
@@ -53,19 +86,92 @@ export default function Create({
         brief_history: '',
         is_research_piece: false,
         photograph_reference: '',
-        images: [] as File[],
+        images: [],
 
-        // Campos de movimiento y ubicación inicial
         movement_type_id: '',
         agent_id: '',
-        transaction_status_id: transactionStatuses.length > 0 ? transactionStatuses[0].id.toString() : '',
+        transaction_status_id: defaultStatus ? defaultStatus.id.toString() : '',
         entry_exit_date: new Date().toISOString().split('T')[0],
         location_id: '',
     });
 
-    // 2. Estados visuales
     const [previews, setPreviews] = useState<string[]>([]);
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [checking, setChecking] = useState<Record<string, boolean>>({});
+    const [isClassificationModalOpen, setIsClassificationModalOpen] = useState(false);
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const [isMovementTypeModalOpen, setIsMovementTypeModalOpen] = useState(false);
+    const [isAgentModalOpen, setIsAgentModalOpen] = useState(false);
+
+
+
+    const [localClassifications, setLocalClassifications] = useState<Category[]>(classifications);
+    const [localLocations, setLocalLocations] = useState<GenericItem[]>(locations);
+    const [localMovementTypes, setLocalMovementTypes] = useState<GenericItem[]>(movementTypes);
+    const [localAgents, setLocalAgents] = useState<GenericItem[]>(agents);
+
+    const validateField = async (name: PieceCreateFormFields, value: string) => {
+        // Validación de requeridos
+        const requiredFields = [
+            'registration_number',
+            'piece_name',
+            'classification_id',
+            'location_id',
+            'movement_type_id',
+            'agent_id',
+            'transaction_status_id',
+            'entry_exit_date'
+        ];
+
+        if (requiredFields.includes(name)) {
+            if (!value || value.toString().trim() === '') {
+                setError(name as keyof typeof data, 'Este campo es obligatorio');
+                return;
+            } else {
+                clearErrors(name as keyof typeof data);
+            }
+        }
+
+        // Validación de unicidad para registration_number
+        if (name === 'registration_number' && value.trim() !== '') {
+            setChecking(prev => ({ ...prev, [name]: true }));
+            try {
+                const response = await axios.get(route('piezas.check-uniqueness'), {
+                    params: { field: name, value }
+                });
+
+                if (response.data && !response.data.valid) {
+                    setError(name as keyof typeof data, response.data.error);
+                } else {
+                    clearErrors(name as keyof typeof data);
+                }
+            } catch (e) {
+                console.error('Error validating field:', e);
+            } finally {
+                setChecking(prev => ({ ...prev, [name]: false }));
+            }
+        }
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setTouched(prev => ({ ...prev, [name]: true }));
+        validateField(name as PieceCreateFormFields, value);
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value, type } = e.target;
+        const finalValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+
+        if (name !== 'images') {
+             setData(name as Exclude<keyof PieceFormData, 'images'>, finalValue as string | boolean);
+        }
+
+        if (touched[name]) {
+            validateField(name as keyof PieceFormData, value);
+        }
+    };
 
     // 3. Manejo de imágenes
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,7 +190,7 @@ export default function Create({
     };
 
     const removeImage = (index: number) => {
-        const newImages = data.images.filter((_, i) => i !== index);
+        const newImages = data.images.filter((_: File, i: number) => i !== index);
         const newPreviews = previews.filter((_, i) => i !== index);
         setData('images', newImages);
         setPreviews(newPreviews);
@@ -95,78 +201,55 @@ export default function Create({
         post(route('piezas.store'));
     };
 
-    // <--- 2. Definición de pasos del Tutorial
-    const createPieceSteps: TutorialStep[] = [
-        {
-            element: '#create-piece-header',
-            popover: {
-                title: 'Registro de Nueva Pieza',
-                description: 'Utiliza este formulario para ingresar una obra al inventario del museo.',
-                side: 'bottom',
-                align: 'start',
-            }
-        },
-        {
-            element: '#general-info-section',
-            popover: {
-                title: 'Información Básica',
-                description: 'Ingresa el número de registro único y el nombre oficial de la pieza.',
-                side: 'top',
-                align: 'start',
-            }
-        },
-        {
-            element: '#classification-section',
-            popover: {
-                title: 'Clasificación',
-                description: 'Selecciona la categoría. Si no existe, puedes crear una nueva rápidamente con el botón (+).',
-                side: 'right',
-                align: 'center',
-            }
-        },
-        {
-            element: '#location-entry-section',
-            popover: {
-                title: 'Ubicación e Ingreso',
-                description: 'Define dónde se encontrará la pieza inicialmente y bajo qué términos ingresa (donación, préstamo, etc.).',
-                side: 'top',
-                align: 'start',
-            }
-        },
-        {
-            element: '#dimensions-section',
-            popover: {
-                title: 'Dimensiones Físicas',
-                description: 'Registra las medidas exactas (Alto, Ancho, Profundidad) en centímetros.',
-                side: 'top',
-                align: 'start',
-            }
-        },
-        {
-            element: '#images-section',
-            popover: {
-                title: 'Galería Fotográfica',
-                description: 'Sube hasta 3 fotos de referencia. Puedes hacer clic en ellas para verlas en detalle.',
-                side: 'top',
-                align: 'center',
-            }
-        },
-        {
-            element: '#submit-btn',
-            popover: {
-                title: 'Guardar Registro',
-                description: 'Una vez completado, haz clic aquí para guardar la pieza en la base de datos.',
-                side: 'left',
-                align: 'center',
-            }
-        }
-    ];
+    const handleClassificationCreated = (newClassification: Category) => {
+        setLocalClassifications(prev => [...prev, newClassification]);
+        setData('classification_id', newClassification.id.toString());
+    };
+
+    const handleLocationCreated = (newLocation: GenericItem) => {
+        setLocalLocations(prev => [...prev, newLocation]);
+        setData('location_id', newLocation.id.toString());
+    };
+
+    const handleMovementTypeCreated = (newType: GenericItem) => {
+        setLocalMovementTypes(prev => [...prev, newType]);
+        setData('movement_type_id', newType.id.toString());
+    };
+
+    const handleAgentCreated = (newAgent: GenericItem) => {
+        setLocalAgents(prev => [...prev, newAgent]);
+        setData('agent_id', newAgent.id.toString());
+    };
+
 
     return (
         <AppSidebarLayout breadcrumbs={breadcrumbs} header="Nueva Pieza">
             <Head title="Nueva Pieza" />
 
-            <TutorialGuide tutorialKey="pieces-create-v1" steps={createPieceSteps} />
+            <ClassificationModal
+                isOpen={isClassificationModalOpen}
+                onClose={() => setIsClassificationModalOpen(false)}
+                onSuccess={handleClassificationCreated}
+            />
+
+            <LocationModal
+                isOpen={isLocationModalOpen}
+                onClose={() => setIsLocationModalOpen(false)}
+                onSuccess={handleLocationCreated}
+            />
+
+            <MovementTypeModal
+                isOpen={isMovementTypeModalOpen}
+                onClose={() => setIsMovementTypeModalOpen(false)}
+                onSuccess={handleMovementTypeCreated}
+            />
+
+            <AgentModal
+                isOpen={isAgentModalOpen}
+                onClose={() => setIsAgentModalOpen(false)}
+                onSuccess={handleAgentCreated}
+            />
+
 
             {/* --- MODAL LIGHTBOX (Zoom) --- */}
             {lightboxImage && (
@@ -194,6 +277,27 @@ export default function Create({
             )}
 
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
+                {/* Global Errors Alert */}
+                {Object.keys(errors).length > 0 && (
+                    <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm">
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <X className="h-5 w-5 text-red-500 cursor-pointer" onClick={() => clearErrors()} />
+                            </div>
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-red-800">Hay errores en el formulario</h3>
+                                <div className="mt-2 text-sm text-red-700">
+                                    <ul className="list-disc pl-5 space-y-1">
+                                        {Object.entries(errors).map(([key, error]) => (
+                                            <li key={key}>{error}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="max-w-3xl mx-auto w-full bg-white p-8 rounded-lg shadow-sm border border-gray-200">
                     {/* <--- 4. ID Agregado */}
                     <h2 id="create-piece-header" className="text-2xl font-bold text-gray-800 mb-6">Registrar Nueva Pieza</h2>
@@ -202,15 +306,22 @@ export default function Create({
 
                         {/* --- DATOS DE LA PIEZA --- */}
                         <div id="general-info-section" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="md:col-span-2">
+                            <div className="md:col-span-2 relative">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">No. de Registro *</label>
                                 <input
                                     type="text" required
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none font-bold"
+                                    name="registration_number"
+                                    className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none font-bold ${errors.registration_number ? 'border-red-500' : 'border-gray-300'}`}
                                     placeholder="Ej: REG-2024-001"
                                     value={data.registration_number}
-                                    onChange={(e) => setData('registration_number', e.target.value)}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
                                 />
+                                {checking.registration_number && (
+                                    <div className="absolute right-3 top-9">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                    </div>
+                                )}
                                 {errors.registration_number && <p className="text-red-500 text-sm mt-1">{errors.registration_number}</p>}
                             </div>
 
@@ -218,9 +329,11 @@ export default function Create({
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la Pieza *</label>
                                 <input
                                     type="text" required
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                    name="piece_name"
+                                    className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none ${errors.piece_name ? 'border-red-500' : 'border-gray-300'}`}
                                     value={data.piece_name}
-                                    onChange={(e) => setData('piece_name', e.target.value)}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
                                 />
                                 {errors.piece_name && <p className="text-red-500 text-sm mt-1">{errors.piece_name}</p>}
                             </div>
@@ -232,18 +345,20 @@ export default function Create({
                             <div className="flex gap-2">
                                 <select
                                     required
-                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                    name="classification_id"
+                                    className={`flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white ${errors.classification_id ? 'border-red-500' : 'border-gray-300'}`}
                                     value={data.classification_id}
-                                    onChange={(e) => setData('classification_id', e.target.value)}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
                                 >
                                     <option value="">Seleccione una clasificación</option>
-                                    {classifications.map((c) => (
+                                    {localClassifications.map((c) => (
                                         <option key={c.id} value={c.id}>{c.name}</option>
                                     ))}
                                 </select>
                                 <button
                                     type="button"
-                                    onClick={() => router.visit('/clasificaciones/create')}
+                                    onClick={() => setIsClassificationModalOpen(true)}
                                     className="px-3 py-2 border border-gray-300 rounded-md bg-white text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                                     title="Nueva Categoría"
                                 >
@@ -256,10 +371,12 @@ export default function Create({
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                             <textarea
+                                name="description"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                 rows={3}
                                 value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
                             />
                         </div>
 
@@ -272,49 +389,100 @@ export default function Create({
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Ubicación Inicial (Saca/Sala) *</label>
-                                    <select
-                                        required
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                                        value={data.location_id}
-                                        onChange={(e) => setData('location_id', e.target.value)}
-                                    >
-                                        <option value="">Seleccione ubicación</option>
-                                        {locations.map((l) => (
-                                            <option key={l.id} value={l.id}>{l.location_name || l.name}</option>
-                                        ))}
-                                    </select>
+                                    <div className="flex gap-2">
+                                        <select
+                                            required
+                                            name="location_id"
+                                            className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white ${errors.location_id ? 'border-red-500' : 'border-gray-300'}`}
+                                            value={data.location_id}
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                        >
+                                            <option value="">Seleccione ubicación</option>
+                                            {localLocations.map((l) => (
+                                                <option key={l.id} value={l.id}>{l.location_name || l.name}</option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsLocationModalOpen(true)}
+                                            className="px-3 py-2 border border-gray-300 rounded-md bg-white text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                            title="Nueva Ubicación"
+                                        >
+                                            <Plus className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                     {errors.location_id && <p className="text-red-500 text-sm mt-1">{errors.location_id}</p>}
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Ingreso *</label>
-                                    <select
-                                        required
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                                        value={data.movement_type_id}
-                                        onChange={(e) => setData('movement_type_id', e.target.value)}
-                                    >
-                                        <option value="">Seleccione tipo</option>
-                                        {movementTypes.map((t) => (
-                                            <option key={t.id} value={t.id}>{t.movement_name}</option>
-                                        ))}
-                                    </select>
+                                    <div className="flex gap-2">
+                                        <select
+                                            required
+                                            name="movement_type_id"
+                                            className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white ${errors.movement_type_id ? 'border-red-500' : 'border-gray-300'}`}
+                                            value={data.movement_type_id}
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                        >
+                                            <option value="">Seleccione tipo</option>
+                                            {localMovementTypes.filter(t =>
+                                                // Mostrar solo Donación y Expedición si existen (búsqueda parcial), o todo si estamos en modo debug/inicial
+                                                ['donación', 'donacion', 'expedición', 'expedicion'].some(term => (t.movement_name || '').toLowerCase().includes(term)) ||
+                                                // Si el usuario acaba de crear uno nuevo que no sea de estos, lo mostramos también para no confundir
+                                                data.movement_type_id === t.id.toString()
+                                            ).length > 0 ? (
+                                                localMovementTypes.filter(t =>
+                                                    ['donación', 'donacion', 'expedición', 'expedicion'].some(term => (t.movement_name || '').toLowerCase().includes(term)) ||
+                                                    data.movement_type_id === t.id.toString()
+                                                ).map((t) => (
+                                                    <option key={t.id} value={t.id}>{t.movement_name}</option>
+                                                ))
+                                            ) : (
+                                                // Si no existen los tipos estándar, mostramos todos (fallback)
+                                                localMovementTypes.map((t) => (
+                                                    <option key={t.id} value={t.id}>{t.movement_name}</option>
+                                                ))
+                                            )}
+                                        </select>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsMovementTypeModalOpen(true)}
+                                            className="px-3 py-2 border border-gray-300 rounded-md bg-white text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                            title="Nuevo Tipo de Movimiento"
+                                        >
+                                            <Plus className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                     {errors.movement_type_id && <p className="text-red-500 text-sm mt-1">{errors.movement_type_id}</p>}
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Agente / Entidad Proveniente *</label>
-                                    <select
-                                        required
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                                        value={data.agent_id}
-                                        onChange={(e) => setData('agent_id', e.target.value)}
-                                    >
-                                        <option value="">Seleccione agente</option>
-                                        {agents.map((a) => (
-                                            <option key={a.id} value={a.id}>{a.name_legal_entity}</option>
-                                        ))}
-                                    </select>
+                                    <div className="flex gap-2">
+                                        <select
+                                            required
+                                            name="agent_id"
+                                            className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white ${errors.agent_id ? 'border-red-500' : 'border-gray-300'}`}
+                                            value={data.agent_id}
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                        >
+                                            <option value="">Seleccione agente</option>
+                                            {localAgents.map((a) => (
+                                                <option key={a.id} value={a.id}>{a.name_legal_entity || a.name}</option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsAgentModalOpen(true)}
+                                            className="px-3 py-2 border border-gray-300 rounded-md bg-white text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                            title="Nuevo Agente"
+                                        >
+                                            <Plus className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                     {errors.agent_id && <p className="text-red-500 text-sm mt-1">{errors.agent_id}</p>}
                                 </div>
 
@@ -322,9 +490,11 @@ export default function Create({
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Ingreso *</label>
                                     <input
                                         type="date" required
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                        name="entry_exit_date"
+                                        className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none ${errors.entry_exit_date ? 'border-red-500' : 'border-gray-300'}`}
                                         value={data.entry_exit_date}
-                                        onChange={(e) => setData('entry_exit_date', e.target.value)}
+                                        onChange={handleChange}
+                                        onBlur={handleBlur}
                                     />
                                     {errors.entry_exit_date && <p className="text-red-500 text-sm mt-1">{errors.entry_exit_date}</p>}
                                 </div>
@@ -336,18 +506,22 @@ export default function Create({
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Autor / Etnia</label>
                                 <input
                                     type="text"
+                                    name="author_ethnicity"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                     value={data.author_ethnicity}
-                                    onChange={(e) => setData('author_ethnicity', e.target.value)}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Realización</label>
                                 <input
                                     type="date"
+                                    name="realization_date"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                     value={data.realization_date}
-                                    onChange={(e) => setData('realization_date', e.target.value)}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
                                 />
                             </div>
                         </div>
@@ -359,18 +533,27 @@ export default function Create({
                             <div className="grid grid-cols-3 gap-2">
                                 <input
                                     type="number" step="0.01" min="0" placeholder="Alto"
+                                    name="height"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none text-sm focus:ring-2 focus:ring-blue-500"
-                                    value={data.height} onChange={(e) => setData('height', e.target.value)}
+                                    value={data.height}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
                                 />
                                 <input
                                     type="number" step="0.01" min="0" placeholder="Ancho"
+                                    name="width"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none text-sm focus:ring-2 focus:ring-blue-500"
-                                    value={data.width} onChange={(e) => setData('width', e.target.value)}
+                                    value={data.width}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
                                 />
                                 <input
                                     type="number" step="0.01" min="0" placeholder="Profundida."
+                                    name="depth"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none text-sm focus:ring-2 focus:ring-blue-500"
-                                    value={data.depth} onChange={(e) => setData('depth', e.target.value)}
+                                    value={data.depth}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
                                 />
                             </div>
                         </div>
@@ -378,19 +561,22 @@ export default function Create({
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Breve Historia</label>
                             <textarea
+                                name="brief_history"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                                 rows={2}
                                 value={data.brief_history}
-                                onChange={(e) => setData('brief_history', e.target.value)}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
                             />
                         </div>
 
                          <div className="flex items-center gap-2">
                             <input
                                 type="checkbox" id="is_research_piece"
+                                name="is_research_piece"
                                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                 checked={data.is_research_piece}
-                                onChange={(e) => setData('is_research_piece', e.target.checked)}
+                                onChange={handleChange}
                             />
                             <label htmlFor="is_research_piece" className="block text-sm font-medium text-gray-700">¿Es pieza de investigación?</label>
                         </div>

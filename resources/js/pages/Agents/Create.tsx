@@ -6,6 +6,7 @@ import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; // <--
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
+        unique_id: '',
         name_legal_entity: '',
         representative_name: '',
         phone_number: '',
@@ -95,12 +96,28 @@ export default function Create() {
                     </div>
 
                     <form onSubmit={submit} className="p-8 space-y-8">
-                        
+
                         {/* SECCIÓN 1: IDENTIFICACIÓN */}
                         {/* <--- 4. ID Agregado */}
                         <div id="agent-main-info" className="space-y-6">
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b pb-2">Información Principal</h3>
+
                             <div className="grid md:grid-cols-2 gap-6">
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Cédula / ID Único *
+                                    </label>
+                                    <input
+                                        type="number"
+                                        className={inputClasses}
+                                        placeholder="Ej. 12345678"
+                                        value={data.unique_id}
+                                        onChange={e => setData('unique_id', e.target.value)}
+                                        autoFocus
+                                    />
+                                    {errors.unique_id && <p className="text-red-500 text-xs mt-1 font-medium">{errors.unique_id}</p>}
+                                </div>
+
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         Nombre / Razón Social *
@@ -111,13 +128,12 @@ export default function Create() {
                                         placeholder="Ej. Museo de Bellas Artes, Juan Pérez..."
                                         value={data.name_legal_entity}
                                         onChange={e => setData('name_legal_entity', e.target.value)}
-                                        autoFocus
                                     />
                                     {errors.name_legal_entity && <p className="text-red-500 text-xs mt-1 font-medium">{errors.name_legal_entity}</p>}
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                    <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                                         <User className="w-4 h-4 text-gray-400" /> Representante
                                     </label>
                                     <input
@@ -137,7 +153,7 @@ export default function Create() {
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b pb-2">Datos de Contacto</h3>
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                    <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                                         <Phone className="w-4 h-4 text-gray-400" /> Teléfono
                                     </label>
                                     <input
@@ -169,7 +185,7 @@ export default function Create() {
                         <div id="agent-address-info" className="space-y-6">
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b pb-2">Ubicación</h3>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                                     <MapPin className="w-4 h-4 text-gray-400" /> Dirección Física
                                 </label>
                                 <textarea
@@ -185,12 +201,12 @@ export default function Create() {
                         {/* BOTÓN FINAL */}
                         <div className="pt-6 border-t border-gray-100 flex justify-end">
                             {/* <--- 4. ID Agregado */}
-                            <button 
+                            <button
                                 id="submit-agent-btn"
-                                disabled={processing} 
+                                disabled={processing}
                                 className="flex items-center bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-200 transition-all active:scale-95"
                             >
-                                <Save className="w-5 h-5 mr-2" /> 
+                                <Save className="w-5 h-5 mr-2" />
                                 Guardar Agente
                             </button>
                         </div>

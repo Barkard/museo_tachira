@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { type BreadcrumbItem, SharedData, PaginationLink } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 import { debounce } from 'lodash';
 import { Pencil, Trash2, Plus, Search } from 'lucide-react';
@@ -9,11 +9,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Historial de Ubicaciones', href: '/historial-ubicaciones' },
 ];
 
-interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
-}
+
 
 interface CurrentLocation {
     id: number;
@@ -60,15 +56,21 @@ export default function Index({ locations, filters }: Props) {
         }
     };
 
+    const { props } = usePage<SharedData>();
+    const userRole = props.auth.user.role?.role_name;
+    const isEmpleado = userRole === 'Empleado';
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Historial Ubicaciones" />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-gray-800">Historial de Ubicaciones</h2>
-                    <Link href={route('historial-ubicaciones.create')} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2">
-                        <Plus className="w-4 h-4" /> Nuevo Movimiento
-                    </Link>
+                    {!isEmpleado && (
+                        <Link href={route('historial-ubicaciones.create')} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2">
+                            <Plus className="w-4 h-4" /> Nuevo Movimiento
+                        </Link>
+                    )}
                 </div>
 
                 <div className="bg-white rounded-lg shadow border-gray-200 overflow-hidden">
@@ -93,7 +95,7 @@ export default function Index({ locations, filters }: Props) {
                                     <th className="px-6 py-3">Ubicación</th>
                                     <th className="px-6 py-3">Motivo</th>
                                     <th className="px-6 py-3">Responsable</th>
-                                    <th className="px-6 py-3 text-right">Acciones</th>
+                                    {!isEmpleado && <th className="px-6 py-3 text-right">Acciones</th>}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
@@ -110,15 +112,17 @@ export default function Index({ locations, filters }: Props) {
                                         <td className="px-6 py-4 text-xs text-gray-500">
                                             {item.user?.first_name} {item.user?.last_name}
                                         </td>
-                                        <td className="px-6 py-4 text-right flex justify-end gap-2">
-                                            <Link href={route('historial-ubicaciones.edit', item.id)} className="text-blue-600"><Pencil className="w-4 h-4" /></Link>
-                                            <button onClick={() => handleDelete(item.id)} className="text-red-600"><Trash2 className="w-4 h-4" /></button>
-                                        </td>
+                                        {!isEmpleado && (
+                                            <td className="px-6 py-4 text-right flex justify-end gap-2">
+                                                <Link href={route('historial-ubicaciones.edit', item.id)} className="text-blue-600"><Pencil className="w-4 h-4" /></Link>
+                                                <button onClick={() => handleDelete(item.id)} className="text-red-600"><Trash2 className="w-4 h-4" /></button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                                 {locations.data.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                                        <td colSpan={isEmpleado ? 5 : 6} className="px-6 py-4 text-center text-gray-500">
                                             No se encontraron registros.
                                         </td>
                                     </tr>

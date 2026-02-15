@@ -1,6 +1,7 @@
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout'; 
-import { Head, Link, router } from '@inertiajs/react';
-import React, { useState, useCallback } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { SharedData, PaginationLink } from '@/types';
+import React, { useState, useMemo } from 'react';
 import { debounce } from 'lodash';
 import { Pencil, Trash2, Plus, Search, ArrowRightLeft } from 'lucide-react';
 import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; // <--- 1. Importación
@@ -18,7 +19,7 @@ interface Movement {
 interface Props {
     movements: {
         data: Movement[];
-        links: any[];
+        links: PaginationLink[];
     };
     filters: {
         search?: string;
@@ -28,14 +29,15 @@ interface Props {
 export default function Index({ movements, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
 
-    const handleSearch = useCallback(
-        debounce((query: string) => {
-            router.get(
-                route('movimientos.index'),
-                { search: query },
-                { preserveState: true, replace: true }
-            );
-        }, 300),
+    const handleSearch = useMemo(
+        () =>
+            debounce((query: string) => {
+                router.get(
+                    route('movimientos.index'),
+                    { search: query },
+                    { preserveState: true, replace: true }
+                );
+            }, 300),
         []
     );
 
@@ -86,6 +88,10 @@ export default function Index({ movements, filters }: Props) {
         }
     ];
 
+    const { props } = usePage<SharedData>();
+    const userRole = props.auth.user?.role?.role_name;
+    const isEmpleado = userRole === 'Empleado';
+
     return (
         <AppSidebarLayout breadcrumbs={breadcrumbs} header="Historial de Movimientos">
             <Head title="Movimientos" />
@@ -111,15 +117,17 @@ export default function Index({ movements, filters }: Props) {
                         />
                     </div>
                     
-                    {/* <--- 4. ID Agregado */}
-                    <Link
-                        id="create-movement-btn"
-                        href={route('movimientos.create')}
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Registrar Movimiento
-                    </Link>
+                    {!isEmpleado && (
+                        /* <--- 4. ID Agregado */
+                        <Link
+                            id="create-movement-btn"
+                            href={route('movimientos.create')}
+                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Registrar Movimiento
+                        </Link>
+                    )}
                 </div>
 
                 {/* TABLA */}
@@ -133,7 +141,7 @@ export default function Index({ movements, filters }: Props) {
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo</th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Agente / Entidad</th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha</th>
-                                    <th scope="col" className="relative px-6 py-3"><span className="sr-only">Acciones</span></th>
+                                    {!isEmpleado && <th scope="col" className="relative px-6 py-3"><span className="sr-only">Acciones</span></th>}
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
@@ -172,21 +180,23 @@ export default function Index({ movements, filters }: Props) {
                                                 {movement.entry_exit_date}
                                             </td>
 
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex justify-end gap-2">
-                                                    <Link href={route('movimientos.edit', movement.id)} className="text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg transition-colors">
-                                                        <Pencil className="w-4 h-4" />
-                                                    </Link>
-                                                    <button onClick={() => handleDelete(movement.id)} className="text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors">
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
+                                            {!isEmpleado && (
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <div className="flex justify-end gap-2">
+                                                        <Link href={route('movimientos.edit', movement.id)} className="text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg transition-colors">
+                                                            <Pencil className="w-4 h-4" />
+                                                        </Link>
+                                                        <button onClick={() => handleDelete(movement.id)} className="text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            )}
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={isEmpleado ? 4 : 5} className="px-6 py-12 text-center text-gray-500">
                                             <div className="flex flex-col items-center justify-center">
                                                 <ArrowRightLeft className="w-10 h-10 text-gray-300 mb-2" />
                                                 <p>No se encontraron movimientos registrados.</p>

@@ -1,6 +1,7 @@
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
-import { Head, Link, router } from '@inertiajs/react';
-import { useState, ChangeEvent } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { SharedData, PaginationLink } from '@/types';
+import { useState, ChangeEvent, useMemo } from 'react';
 import { Pencil, Trash2, Plus, Search, Tags, FolderOpen } from 'lucide-react';
 import { debounce } from 'lodash';
 import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; // <--- 1. Importación
@@ -14,7 +15,7 @@ interface Classification {
 
 interface PaginatedClassifications {
     data: Classification[];
-    links: any[];
+    links: PaginationLink[];
 }
 
 interface IndexProps {
@@ -27,13 +28,17 @@ interface IndexProps {
 export default function Index({ classifications, filters }: IndexProps) {
     const [search, setSearch] = useState(filters.search || '');
 
-    const handleSearch = debounce((value) => {
-        router.get(
-            route('clasificaciones.index'),
-            { search: value },
-            { preserveState: true, replace: true }
-        );
-    }, 300);
+    const handleSearch = useMemo(
+        () =>
+            debounce((value: string) => {
+                router.get(
+                    route('clasificaciones.index'),
+                    { search: value },
+                    { preserveState: true, replace: true }
+                );
+            }, 300),
+        []
+    );
 
     const onSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
@@ -82,6 +87,10 @@ export default function Index({ classifications, filters }: IndexProps) {
         }
     ];
 
+    const { props } = usePage<SharedData>();
+    const userRole = props.auth.user?.role?.role_name;
+    const isEmpleado = userRole === 'Empleado';
+
     return (
         <AppSidebarLayout breadcrumbs={breadcrumbs} header="Clasificaciones">
             <Head title="Clasificaciones" />
@@ -107,15 +116,17 @@ export default function Index({ classifications, filters }: IndexProps) {
                         />
                     </div>
 
-                    {/* <--- 4. ID Agregado */}
-                    <Link
-                        id="create-classification-btn"
-                        href={route('clasificaciones.create')}
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Nueva Categoría
-                    </Link>
+                    {!isEmpleado && (
+                        /* <--- 4. ID Agregado */
+                        <Link
+                            id="create-classification-btn"
+                            href={route('clasificaciones.create')}
+                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Nueva Categoría
+                        </Link>
+                    )}
                 </div>
 
                 {/* TABLA */}
@@ -136,7 +147,7 @@ export default function Index({ classifications, filters }: IndexProps) {
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nombre</th>
                                         <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Descripción</th>
-                                        <th className="relative px-6 py-3"><span className="sr-only">Acciones</span></th>
+                                        {!isEmpleado && <th className="relative px-6 py-3"><span className="sr-only">Acciones</span></th>}
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
@@ -155,16 +166,18 @@ export default function Index({ classifications, filters }: IndexProps) {
                                             <td className="px-6 py-4">
                                                 <div className="text-sm text-gray-500 max-w-lg truncate">{item.description || '-'}</div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex justify-end gap-3">
-                                                    <Link href={route('clasificaciones.edit', item.id)} className="text-blue-600 hover:text-blue-900 bg-blue-50 p-1.5 rounded-md hover:bg-blue-100 transition-colors">
-                                                        <Pencil className="w-4 h-4" />
-                                                    </Link>
-                                                    <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900 bg-red-50 p-1.5 rounded-md hover:bg-red-100 transition-colors">
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
+                                            {!isEmpleado && (
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <div className="flex justify-end gap-3">
+                                                        <Link href={route('clasificaciones.edit', item.id)} className="text-blue-600 hover:text-blue-900 bg-blue-50 p-1.5 rounded-md hover:bg-blue-100 transition-colors">
+                                                            <Pencil className="w-4 h-4" />
+                                                        </Link>
+                                                        <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900 bg-red-50 p-1.5 rounded-md hover:bg-red-100 transition-colors">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            )}
                                         </tr>
                                     ))}
                                 </tbody>

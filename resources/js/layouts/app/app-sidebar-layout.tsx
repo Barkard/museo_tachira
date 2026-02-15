@@ -1,8 +1,8 @@
-import { PropsWithChildren, ReactNode } from 'react';
+import { ReactNode } from 'react';
 import AppSidebar from '@/components/app-sidebar';
 import { Bell, ChevronRight, Home } from 'lucide-react';
 import { Link, usePage } from '@inertiajs/react';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, SharedData } from '@/types';
 
 interface LayoutProps {
     header?: ReactNode;
@@ -11,17 +11,17 @@ interface LayoutProps {
 }
 
 export default function AppSidebarLayout({ header, children, breadcrumbs }: LayoutProps) {
-    const { auth } = usePage().props as any;
+    const { auth } = usePage<SharedData>().props;
 
     return (
         <div className="flex h-screen w-full bg-gray-50 font-sans text-sm overflow-hidden">
-            
+
             {/* BARRA LATERAL (FIJA) */}
             <AppSidebar />
 
             {/* CONTENIDO DERECHO (SCROLLABLE) */}
             <div className="flex-1 flex flex-col h-screen min-w-0">
-                
+
                 {/* HEADER */}
                 <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0 z-20">
                     <h1 className="text-lg font-bold text-gray-800 tracking-tight">{header}</h1>
@@ -39,7 +39,7 @@ export default function AppSidebarLayout({ header, children, breadcrumbs }: Layo
                                     {auth.user.first_name || auth.user.name}
                                 </span>
                                 <span className="block text-[10px] uppercase tracking-wider text-gray-500 font-medium">
-                                    Administrador
+                                    {auth.user.role?.role_name || 'Usuario'}
                                 </span>
                             </div>
                             <div className="h-9 w-9 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm">

@@ -24,9 +24,11 @@ interface NavGroup {
 }
 
 export default function AppSidebar() {
-    const { url } = usePage();
+    const { url, props } = usePage();
+    const userRole = (props.auth as any).user?.role?.role_name;
+    const isEmpleado = userRole === 'Empleado';
 
-        const navigation: NavGroup[] = [
+    const navigation: NavGroup[] = [
         {
             group: 'Principal',
             items: [
@@ -47,8 +49,8 @@ export default function AppSidebar() {
                     current: url.startsWith('/piezas'),
                     subItems: [
                         { name: 'Catálogo', href: route('piezas.index') },
-                        { name: 'Registrar', href: route('piezas.create') },
-                    ]
+                        !isEmpleado && { name: 'Registrar', href: route('piezas.create') },
+                    ].filter(Boolean) as SubItem[]
                 },
                 {
                     name: 'Ubicaciones',
@@ -56,8 +58,8 @@ export default function AppSidebar() {
                     current: url.startsWith('/ubicaciones'),
                     subItems: [
                         { name: 'Ver Lista', href: route('ubicaciones.index') },
-                        { name: 'Crear Zona', href: route('ubicaciones.create') },
-                    ]
+                        !isEmpleado && { name: 'Crear Zona', href: route('ubicaciones.create') },
+                    ].filter(Boolean) as SubItem[]
                 }
             ]
         },
@@ -71,18 +73,38 @@ export default function AppSidebar() {
                     current: url.startsWith('/agentes'),
                     subItems: [
                         { name: 'Directorio', href: route('agentes.index') },
-                        { name: 'Nuevo Agente', href: route('agentes.create') },
-                    ]
+                        !isEmpleado && { name: 'Nuevo Agente', href: route('agentes.create') },
+                    ].filter(Boolean) as SubItem[]
                 }
+            ]
+        },
+        // Only show Administración to admins
+        !isEmpleado && {
+            group: 'Administración',
+            items: [
+                {
+                    name: 'Usuarios',
+                    icon: Users,
+                    current: url.startsWith('/usuarios'),
+                    subItems: [
+                        { name: 'Lista de Usuarios', href: route('usuarios.index') },
+                        { name: 'Nuevo Usuario', href: route('usuarios.create') },
+                    ]
+                },
             ]
         },
         {
             group: 'Sistema',
             items: [
-                { name: 'Ajustes', href: '#', icon: Settings, current: false },
+                {
+                    name: 'Ajustes de Perfil',
+                    href: route('profile.edit'),
+                    icon: Settings,
+                    current: url.startsWith('/settings/profile')
+                },
             ]
         }
-    ];
+    ].filter(Boolean) as NavGroup[];
 
     return (
         <aside className="w-60 bg-slate-900 text-white flex flex-col h-screen border-r border-slate-800 shrink-0 transition-all duration-300 z-30">

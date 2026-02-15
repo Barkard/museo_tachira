@@ -36,8 +36,18 @@ class ClassificationCategoryController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        ClassificationCategory::create($validated);
+        $classification = ClassificationCategory::create($validated);
 
+        // If AJAX request (from modal), return JSON
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'data' => $classification,
+                'message' => 'Clasificación creada exitosamente.'
+            ], 201);
+        }
+
+        // Otherwise, redirect as usual
         return redirect()->route('clasificaciones.index')->with('success', 'Clasificación creada.');
     }
 

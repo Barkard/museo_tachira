@@ -13,7 +13,7 @@ class LocationCategoryController extends Controller
         $query = LocationCategory::query();
 
         if ($request->has('search')) {
-            $query->where('name', 'like', "%{$request->search}%");
+            $query->where('location_name', 'like', "%{$request->search}%");
         }
 
         $locations = $query->paginate(10)->withQueryString();
@@ -32,12 +32,22 @@ class LocationCategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:location_categories,name',
+            'location_name' => 'required|string|max:255|unique:location_categories,location_name',
             'description' => 'nullable|string',
         ]);
 
-        LocationCategory::create($validated);
+        $location = LocationCategory::create($validated);
 
+        // If AJAX request (from modal), return JSON
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'data' => $location,
+                'message' => 'Ubicación creada exitosamente.'
+            ], 201);
+        }
+
+        // Otherwise, redirect as usual
         return redirect()->route('ubicaciones.index')->with('success', 'Ubicación creada.');
     }
 
@@ -51,7 +61,7 @@ class LocationCategoryController extends Controller
     public function update(Request $request, LocationCategory $ubicacione)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:location_categories,name,' . $ubicacione->id,
+            'location_name' => 'required|string|max:255|unique:location_categories,location_name,' . $ubicacione->id,
             'description' => 'nullable|string',
         ]);
 
