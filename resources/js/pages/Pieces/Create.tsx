@@ -8,6 +8,7 @@ import ClassificationModal from '@/components/ClassificationModal';
 import LocationModal from '@/components/LocationModal';
 import MovementTypeModal from '@/components/MovementTypeModal';
 import AgentModal from '@/components/AgentModal';
+import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Piezas', href: '/piezas' },
@@ -221,10 +222,78 @@ export default function Create({
         setData('agent_id', newAgent.id.toString());
     };
 
+    // <--- 2. Definición de pasos del Tutorial
+    const createPieceSteps: TutorialStep[] = [
+        {
+            element: '#create-piece-header',
+            popover: {
+                title: 'Registro de Nueva Pieza',
+                description: 'Utiliza este formulario para ingresar una obra al inventario del museo.',
+                side: 'bottom',
+                align: 'start',
+            }
+        },
+        {
+            element: '#general-info-section',
+            popover: {
+                title: 'Información Básica',
+                description: 'Ingresa el nombre oficial y el número de registro único de la pieza.',
+                side: 'top',
+                align: 'start',
+            }
+        },
+        {
+            element: '#classification-section',
+            popover: {
+                title: 'Clasificación',
+                description: 'Selecciona la categoría. Si no existe, puedes crear una nueva rápidamente con el botón (+).',
+                side: 'right',
+                align: 'center',
+            }
+        },
+        {
+            element: '#location-entry-section',
+            popover: {
+                title: 'Ubicación e Ingreso',
+                description: 'Define dónde se guardará la pieza inicialmente y cómo ingresó al museo.',
+                side: 'top',
+                align: 'start',
+            }
+        },
+        {
+            element: '#dimensions-section',
+            popover: {
+                title: 'Dimensiones Físicas',
+                description: 'Registra las medidas exactas (Alto, Ancho, Profundidad) en centímetros.',
+                side: 'top',
+                align: 'start',
+            }
+        },
+        {
+            element: '#images-section',
+            popover: {
+                title: 'Galería Fotográfica',
+                description: 'Sube hasta 3 fotos de referencia. Puedes hacer clic en ellas para verlas en detalle.',
+                side: 'top',
+                align: 'center',
+            }
+        },
+        {
+            element: '#submit-btn',
+            popover: {
+                title: 'Guardar Registro',
+                description: 'Una vez completado, haz clic aquí para guardar la pieza en la base de datos.',
+                side: 'left',
+                align: 'center',
+            }
+        }
+    ];
 
     return (
         <AppSidebarLayout breadcrumbs={breadcrumbs} header="Nueva Pieza">
             <Head title="Nueva Pieza" />
+
+            <TutorialGuide tutorialKey="pieces-create-v1" steps={createPieceSteps} />
 
             <ClassificationModal
                 isOpen={isClassificationModalOpen}

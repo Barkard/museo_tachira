@@ -1,8 +1,8 @@
-
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import React, { useState } from 'react';
 import axios from 'axios';
+import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide';
 
 type UserFormFields = 'document_id' | 'first_name' | 'last_name' | 'email' | 'phone' | 'birth_date';
 
@@ -65,13 +65,67 @@ export default function Create() {
         post(route('usuarios.store'));
     };
 
+    // <--- Configuración de los pasos del Tutorial
+    const createUserSteps: TutorialStep[] = [
+        {
+            element: '#create-user-header',
+            popover: {
+                title: 'Registro de Usuario',
+                description: 'Utiliza este formulario para dar de alta a un nuevo empleado en el sistema.',
+                side: 'bottom',
+                align: 'start',
+            }
+        },
+        {
+            element: '#document-section',
+            popover: {
+                title: 'Documento de Identidad',
+                description: 'Ingresa la cédula o documento. IMPORTANTE: Este número será la contraseña inicial del usuario.',
+                side: 'top',
+                align: 'start',
+            }
+        },
+        {
+            element: '#names-section',
+            popover: {
+                title: 'Datos Personales',
+                description: 'Completa los nombres y apellidos del usuario tal como aparecen en su identificación.',
+                side: 'top',
+                align: 'start',
+            }
+        },
+        {
+            element: '#email-section',
+            popover: {
+                title: 'Correo Institucional',
+                description: 'Ingresa un correo único. El sistema verificará automáticamente si ya está en uso.',
+                side: 'top',
+                align: 'start',
+            }
+        },
+        {
+            element: '#submit-btn',
+            popover: {
+                title: 'Finalizar Registro',
+                description: 'Haz clic aquí para guardar. El usuario podrá acceder inmediatamente con su cédula como clave.',
+                side: 'left',
+                align: 'center',
+            }
+        }
+    ];
+
     return (
         <AppLayout breadcrumbs={[{ title: 'Usuarios', href: route('usuarios.index') }, { title: 'Nuevo', href: '#' }]}>
             <Head title="Registrar Usuario" />
+            
+            {/* <--- Componente TutorialGuide */}
+            <TutorialGuide tutorialKey="users-create-v1" steps={createUserSteps} />
+
             <div className="p-4 max-w-4xl mx-auto">
                 <div className="bg-white p-8 rounded-lg shadow border">
                     <div className="mb-6">
-                        <h2 className="text-2xl font-bold text-gray-800">Registrar Nuevo Usuario</h2>
+                        {/* <--- ID Agregado */}
+                        <h2 id="create-user-header" className="text-2xl font-bold text-gray-800">Registrar Nuevo Usuario</h2>
                         <p className="text-gray-500 text-sm mt-1">
                             El nuevo usuario tendrá rol de <strong>Empleado</strong> y su contraseña inicial será su <strong>Cédula</strong>.
                         </p>
@@ -80,7 +134,8 @@ export default function Create() {
                     <form onSubmit={submit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Documento / Cédula FIRST */}
-                            <div className="md:col-span-2">
+                            {/* <--- ID Agregado */}
+                            <div id="document-section" className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Documento / Cédula *</label>
                                 <div className="relative">
                                     <input
@@ -101,7 +156,8 @@ export default function Create() {
                                 {errors.document_id && <p className="text-red-500 text-xs mt-1">{errors.document_id}</p>}
                             </div>
 
-                            <div>
+                            {/* <--- ID Agregado */}
+                            <div id="names-section">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombre(s) *</label>
                                 <input
                                     type="text"
@@ -127,7 +183,8 @@ export default function Create() {
                                 {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
                             </div>
 
-                            <div>
+                            {/* <--- ID Agregado */}
+                            <div id="email-section">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico *</label>
                                 <div className="relative">
                                     <input
@@ -180,7 +237,9 @@ export default function Create() {
                             >
                                 Cancelar
                             </Link>
+                            {/* <--- ID Agregado */}
                             <button 
+                                id="submit-btn"
                                 type="submit"
                                 disabled={processing || checking.document_id || checking.email} 
                                 className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"

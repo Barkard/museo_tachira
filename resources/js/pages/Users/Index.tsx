@@ -1,10 +1,10 @@
-
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, SharedData, PaginationLink } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 import { debounce } from 'lodash';
 import { Pencil, Trash2, Plus, Search, User as UserIcon } from 'lucide-react';
+import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Usuarios', href: '/usuarios' },
@@ -63,14 +63,60 @@ export default function Index({ users, filters }: Props) {
     const userRole = props.auth.user?.role?.role_name;
     const isEmpleado = userRole === 'Empleado';
 
+    // <--- Configuración de los pasos del Tutorial
+    const userIndexSteps: TutorialStep[] = [
+        {
+            element: '#users-header',
+            popover: {
+                title: 'Gestión de Usuarios',
+                description: 'En este módulo puedes ver y administrar a los usuarios registrados en el sistema.',
+                side: 'bottom',
+                align: 'start',
+            }
+        },
+        {
+            element: '#create-user-btn',
+            popover: {
+                title: 'Nuevo Usuario',
+                description: 'Utiliza este botón para registrar un nuevo usuario en la base de datos.',
+                side: 'left',
+                align: 'center',
+            }
+        },
+        {
+            element: '#search-bar',
+            popover: {
+                title: 'Búsqueda',
+                description: 'Puedes buscar usuarios rápidamente por nombre, correo electrónico o cédula.',
+                side: 'top',
+                align: 'start',
+            }
+        },
+        {
+            element: '#users-table',
+            popover: {
+                title: 'Lista de Usuarios',
+                description: 'Aquí se muestran los detalles de cada usuario y su rol asignado.',
+                side: 'top',
+                align: 'center',
+            }
+        }
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Usuarios" />
+            
+            {/* <--- Componente TutorialGuide */}
+            <TutorialGuide tutorialKey="usuarios-index-guide" steps={userIndexSteps} />
+
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
-                <div className="flex justify-between items-center mb-6">
+                {/* <--- ID Agregado */}
+                <div id="users-header" className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-gray-800">Gestión de Usuarios</h2>
                     {!isEmpleado && (
-                        <Link href={route('usuarios.create')} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2">
+                        /* <--- ID Agregado */
+                        <Link id="create-user-btn" href={route('usuarios.create')} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2">
                             <Plus className="w-4 h-4" /> Nuevo Usuario
                         </Link>
                     )}
@@ -80,7 +126,9 @@ export default function Index({ users, filters }: Props) {
                     <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center gap-4">
                         <div className="relative flex-1 max-w-md">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            {/* <--- ID Agregado */}
                             <input
+                                id="search-bar"
                                 type="text"
                                 placeholder="Buscar por nombre, correo o cédula..."
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
@@ -90,7 +138,8 @@ export default function Index({ users, filters }: Props) {
                         </div>
                     </div>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
+                        {/* <--- ID Agregado */}
+                        <table id="users-table" className="w-full text-left text-sm">
                             <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
                                 <tr>
                                     <th className="px-6 py-3">Usuario</th>
