@@ -138,7 +138,7 @@ export default function Create({ pieces = [], agents = [], types = [] }: Props) 
                             <div className="grid md:grid-cols-2 gap-6">
                                 {/* <--- 4. ID Agregado */}
                                 <div id="movement-piece-input">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Pieza Involucrada *</label>
+                                    <label className="text-sm font-semibold text-gray-700 mb-2">Pieza Involucrada *</label>
                                     <select
                                         className={inputClasses}
                                         value={data.piece_id}
@@ -158,7 +158,7 @@ export default function Create({ pieces = [], agents = [], types = [] }: Props) 
 
                                 {/* <--- 4. ID Agregado */}
                                 <div id="movement-type-input">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tipo de Movimiento *</label>
+                                    <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">Tipo de Movimiento *</label>
                                     <select
                                         className={inputClasses}
                                         value={data.movement_type_id}

@@ -91,7 +91,7 @@ export default function Edit({ movement, pieces = [], agents = [], types = [] }:
 
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Pieza Involucrada *</label>
+                                    <label className="text-sm font-semibold text-gray-700 mb-2">Pieza Involucrada *</label>
                                     <select
                                         className={inputClasses}
                                         value={data.piece_id}
@@ -108,7 +108,7 @@ export default function Edit({ movement, pieces = [], agents = [], types = [] }:
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tipo de Movimiento *</label>
+                                    <label className="text-sm font-semibold text-gray-700 mb-2">Tipo de Movimiento *</label>
                                     <select
                                         className={inputClasses}
                                         value={data.movement_type_id}

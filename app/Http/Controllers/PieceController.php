@@ -24,7 +24,7 @@ class PieceController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Piece::query()->with('classification');
+        $query = Piece::query()->with(['classification', 'images']);
 
         if ($request->has('search')) {
             $search = $request->search;
@@ -128,9 +128,9 @@ class PieceController extends Controller
             // 4. Procesar imágenes
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $image) {
-                    $optimizedImage = $this->optimizeToBase64($image);
-                    if ($optimizedImage) {
-                        $piece->images()->create(['path' => $optimizedImage]);
+                    $path = $image->store('pieces', 'public');
+                    if ($path) {
+                        $piece->images()->create(['path' => $path]);
                     }
                 }
             }
@@ -218,65 +218,7 @@ class PieceController extends Controller
     }
 
     /**
-     * Función Privada para Optimizar Imágenes "patroclo cochina" (Redimensionar + WebP)
+     * NOTE: Function optimizeToBase64 removed in favor of filesystem storage.
+     * Images are now stored using $file->store() in the store method.
      */
-    private function optimizeToBase64($file)
-    {
-        try {
-            // 1. Crear una imagen desde el archivo original
-            $sourceString = file_get_contents($file);
-            $image = imagecreatefromstring($sourceString);
-
-            if (!$image) return null;
-
-            // 2. Obtener dimensiones originales
-            $width = imagesx($image);
-            $height = imagesy($image);
-
-            // 3. Definir ancho máximo
-            $maxWidth = 1000;
-
-            // Si la imagen es más grande, se redimensionamos
-            if ($width > $maxWidth) {
-                $newWidth = $maxWidth;
-                $newHeight = floor($height * ($maxWidth / $width));
-
-                // Crear lienzo vacío
-                $trueColor = imagecreatetruecolor($newWidth, $newHeight);
-
-                // Mantener transparencia
-                imagealphablending($trueColor, false);
-                imagesavealpha($trueColor, true);
-
-                // Copiar y redimensionar
-                imagecopyresampled($trueColor, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-                $finalImage = $trueColor;
-            } else {
-                // Si es pequeña, la dejamos tal cual
-                $finalImage = $image;
-                // Aún así nos aseguramos de preservar transparencia
-                imagepalettetotruecolor($finalImage);
-                imagealphablending($finalImage, false);
-                imagesavealpha($finalImage, true);
-            }
-
-            // 4. Comprimir y Convertir a WebP en memoria (Buffer)
-            ob_start();
-            // Calidad del 80%
-            imagewebp($finalImage, null, 80);
-            $buffer = ob_get_contents();
-            ob_end_clean();
-
-            // Limpiar memoria RAM
-            imagedestroy($image);
-            if (isset($trueColor)) imagedestroy($trueColor);
-
-            // 5. Retornar el string Base64 listo para la BD
-            return 'data:image/webp;base64,' . base64_encode($buffer);
-
-        } catch (\Exception $e) {
-            // En caso de error (ej. formato raro), devolvemos null o manejamos el error
-            return null;
-        }
-    }
 }
