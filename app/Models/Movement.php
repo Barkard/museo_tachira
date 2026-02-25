@@ -5,9 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\MovementCatalog;
 use App\Models\Agent;
-use App\Models\TransactionStatusCatalog;
 use App\Models\User;
-use App\Models\Piece; 
+use App\Models\Piece;
 
 class Movement extends Model
 {
@@ -15,11 +14,11 @@ class Movement extends Model
         'piece_id',
         'movement_type_id',
         'agent_id',
-        'transaction_status_id',
+        'transaction_status',
         'user_id',
         'entry_exit_date',
     ];
-    
+
 
     public function piece()
     {
@@ -36,10 +35,7 @@ class Movement extends Model
         return $this->belongsTo(Agent::class);
     }
 
-    public function transactionStatus()
-    {
-        return $this->belongsTo(TransactionStatusCatalog::class, 'transaction_status_id');
-    }
+    // Relationship removed as it is now a boolean field
 
     public function user()
     {

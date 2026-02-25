@@ -51,7 +51,6 @@ class PieceController extends Controller
             'classifications' => ClassificationCategory::all(),
             'agents' => Agent::all(),
             'movementTypes' => MovementCatalog::all(),
-            'transactionStatuses' => TransactionStatusCatalog::all(),
             'locations' => LocationCategory::all(),
         ]);
     }
@@ -77,7 +76,6 @@ class PieceController extends Controller
             // Campos de movimiento y ubicación inicial
             'movement_type_id' => 'required|exists:movement_catalogs,id',
             'agent_id' => 'required|exists:agents,id',
-            'transaction_status_id' => 'required|exists:transaction_status_catalogs,id',
             'entry_exit_date' => 'required|date',
             'location_id' => 'required|exists:location_categories,id',
 
@@ -93,7 +91,7 @@ class PieceController extends Controller
             $movement = Movement::create([
                 'movement_type_id' => $validated['movement_type_id'],
                 'agent_id' => $validated['agent_id'],
-                'transaction_status_id' => $validated['transaction_status_id'],
+                'transaction_status' => true,
                 'user_id' => Auth::id(),
                 'entry_exit_date' => $validated['entry_exit_date'],
             ]);
@@ -105,7 +103,7 @@ class PieceController extends Controller
             if (!empty($validated['depth'])) $dims[] = "Profundidad: {$validated['depth']} cm";
 
             $pieceData = collect($validated)->except([
-                'movement_type_id', 'agent_id', 'transaction_status_id',
+                'movement_type_id', 'agent_id',
                 'entry_exit_date', 'location_id', 'images',
                 'height', 'width', 'depth'
             ])->toArray();

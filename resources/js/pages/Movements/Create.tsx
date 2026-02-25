@@ -1,13 +1,12 @@
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Save, ArrowRightLeft, Calendar, User, Info } from 'lucide-react';
+import { ArrowLeft, Save, ArrowRightLeft, Calendar, User } from 'lucide-react';
 import TutorialGuide, { TutorialStep } from '@/components/TutorialGuide'; // <--- 1. Importación
 
 interface MovementFormData {
     piece_id: string;
     movement_type_id: string;
     agent_id: string;
-    transaction_status_id: string | number;
     entry_exit_date: string;
 }
 
@@ -39,19 +38,11 @@ interface Props {
     statuses?: TransactionStatus[];
 }
 
-export default function Create({ pieces = [], agents = [], types = [], statuses = [] }: Props) {
-
-    // Auto-seleccionar "Completado" si existe
-    const defaultStatus = (Array.isArray(statuses) ? statuses : []).find(s =>
-        (s.status || '').toLowerCase().includes('complet') ||
-        (s.status || '').toLowerCase().includes('final')
-    )?.id || (Array.isArray(statuses) && statuses.length > 0 ? statuses[0].id : '');
-
+export default function Create({ pieces = [], agents = [], types = [] }: Props) {
     const { data, setData, post, processing, errors } = useForm<MovementFormData>({
         piece_id: '',
         movement_type_id: '',
         agent_id: '',
-        transaction_status_id: defaultStatus,
         entry_exit_date: new Date().toISOString().split('T')[0],
     });
 
@@ -224,21 +215,6 @@ export default function Create({ pieces = [], agents = [], types = [], statuses 
                                         onChange={e => setData('entry_exit_date', e.target.value)}
                                     />
                                     {errors.entry_exit_date && <p className="text-red-500 text-xs mt-1 font-medium">{errors.entry_exit_date}</p>}
-                                </div>
-
-                                <div>
-                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                        <Info className="w-4 h-4 text-gray-400" /> Estado del Trámite *
-                                    </label>
-                                    <select
-                                        className={inputClasses}
-                                        value={data.transaction_status_id}
-                                        onChange={e => setData('transaction_status_id', e.target.value)}
-                                    >
-                                        {statuses?.map((s: TransactionStatus) => (
-                                            <option key={s.id} value={s.id}>{s.status}</option>
-                                        ))}
-                                    </select>
                                 </div>
                             </div>
                         </div>

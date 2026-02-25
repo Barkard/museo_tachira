@@ -31,7 +31,6 @@ interface PieceFormData {
     images: File[];
     movement_type_id: string;
     agent_id: string;
-    transaction_status_id: string;
     entry_exit_date: string;
     location_id: string;
 }
@@ -64,16 +63,8 @@ export default function Create({
     classifications,
     agents,
     movementTypes,
-    transactionStatuses,
     locations
 }: Props) {
-    // Auto-select "Completado" status if available
-    const defaultStatus = transactionStatuses.find(s =>
-        (s.status || s.name || '').toLowerCase().includes('complet') ||
-        (s.status || s.name || '').toLowerCase().includes('final')
-    ) || (transactionStatuses.length > 0 ? transactionStatuses[0] : null);
-
-    // 1. Configuración del formulario
     const { data, setData, post, processing, errors, setError, clearErrors } = useForm<PieceFormData>({
         registration_number: '',
         piece_name: '',
@@ -91,7 +82,6 @@ export default function Create({
 
         movement_type_id: '',
         agent_id: '',
-        transaction_status_id: defaultStatus ? defaultStatus.id.toString() : '',
         entry_exit_date: new Date().toISOString().split('T')[0],
         location_id: '',
     });
@@ -121,7 +111,6 @@ export default function Create({
             'location_id',
             'movement_type_id',
             'agent_id',
-            'transaction_status_id',
             'entry_exit_date'
         ];
 
@@ -566,24 +555,6 @@ export default function Create({
                                         onBlur={handleBlur}
                                     />
                                     {errors.entry_exit_date && <p className="text-red-500 text-sm mt-1">{errors.entry_exit_date}</p>}
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Estado del Trámite *</label>
-                                    <select
-                                        required
-                                        name="transaction_status_id"
-                                        className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none bg-white ${errors.transaction_status_id ? 'border-red-500' : 'border-gray-300'}`}
-                                        value={data.transaction_status_id}
-                                        onChange={handleChange}
-                                        onBlur={handleBlur}
-                                    >
-                                        <option value="">Seleccione estado</option>
-                                        {transactionStatuses.map((s) => (
-                                            <option key={s.id} value={s.id}>{s.status || s.name}</option>
-                                        ))}
-                                    </select>
-                                    {errors.transaction_status_id && <p className="text-red-500 text-sm mt-1">{errors.transaction_status_id}</p>}
                                 </div>
                             </div>
                         </div>
