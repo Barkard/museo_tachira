@@ -62,14 +62,15 @@ class MovementController extends Controller
             'piece_id' => 'required|exists:pieces,id',
             'movement_type_id' => 'required|exists:movement_catalogs,id',
             'agent_id' => 'required|exists:agents,id',
-            'transaction_status_id' => 'required|exists:transaction_status_catalogs,id',
             'entry_exit_date' => 'required|date',
         ]);
 
         $validated['user_id'] = Auth::id();
-
         $validated['transaction_status'] = true;
-        Movement::create($validated);
+        $validated['created_at'] = now();
+        $validated['updated_at'] = now();
+
+        \Illuminate\Support\Facades\DB::table('movements')->insert($validated);
 
         return redirect()->route('movimientos.index')->with('success', 'Movimiento registrado exitosamente.');
     }
@@ -97,11 +98,15 @@ class MovementController extends Controller
             'piece_id' => 'required|exists:pieces,id',
             'movement_type_id' => 'required|exists:movement_catalogs,id',
             'agent_id' => 'required|exists:agents,id',
-            'transaction_status_id' => 'required|exists:transaction_status_catalogs,id',
             'entry_exit_date' => 'required|date',
         ]);
 
-        $movimiento->update($validated);
+        $validated['transaction_status'] = $request->boolean('transaction_status', true);
+        $validated['updated_at'] = now();
+        
+        \Illuminate\Support\Facades\DB::table('movements')
+            ->where('id', $movimiento->id)
+            ->update($validated);
 
         return redirect()->route('movimientos.index')->with('success', 'Movimiento actualizado exitosamente.');
     }

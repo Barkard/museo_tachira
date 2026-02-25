@@ -8,6 +8,7 @@ interface MovementFormData {
     movement_type_id: string;
     agent_id: string;
     entry_exit_date: string;
+    transaction_status: boolean;
 }
 
 interface Piece {
@@ -44,6 +45,7 @@ export default function Create({ pieces = [], agents = [], types = [] }: Props) 
         movement_type_id: '',
         agent_id: '',
         entry_exit_date: new Date().toISOString().split('T')[0],
+        transaction_status: true,
     });
 
     const submit = (e: React.FormEvent) => {

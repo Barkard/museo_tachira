@@ -8,6 +8,7 @@ interface MovementFormData {
     movement_type_id: string | number;
     agent_id: string | number;
     entry_exit_date: string;
+    transaction_status: boolean;
 }
 
 
@@ -33,6 +34,7 @@ interface Movement {
     movement_type_id: number;
     agent_id: number;
     entry_exit_date: string;
+    transaction_status: boolean;
 }
 
 interface Props {
@@ -50,6 +52,7 @@ export default function Edit({ movement, pieces = [], agents = [], types = [] }:
         movement_type_id: movement.movement_type_id || '',
         agent_id: movement.agent_id || '',
         entry_exit_date: movement.entry_exit_date ? movement.entry_exit_date.split('T')[0] : '',
+        transaction_status: movement.transaction_status ?? true,
     });
 
     const submit = (e: React.FormEvent) => {

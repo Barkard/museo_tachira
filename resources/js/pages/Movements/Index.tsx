@@ -10,7 +10,7 @@ interface Movement {
     id: number;
     movement_catalog: { movement_name: string };
     agent: { name_legal_entity: string };
-    transaction_status: { status: string };
+    transaction_status: boolean;
     user: { name: string; first_name?: string; last_name?: string };
     piece: { piece_name: string; registration_number: string } | null;
     entry_exit_date: string;
@@ -173,7 +173,11 @@ export default function Index({ movements, filters }: Props) {
 
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-gray-900">{movement.agent?.name_legal_entity || 'N/A'}</div>
-                                                <div className="text-xs text-gray-500">Estado: {movement.transaction_status?.status}</div>
+                                                <div className="text-xs text-gray-500">
+                                                    Estado: <span className={movement.transaction_status ? "text-green-600 font-medium" : "text-amber-600 font-medium"}>
+                                                        {movement.transaction_status ? 'Completado' : 'Pendiente'}
+                                                    </span>
+                                                </div>
                                             </td>
 
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
